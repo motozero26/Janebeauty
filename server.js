@@ -11,11 +11,12 @@ const HOST = '0.0.0.0';
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
   next();
 });
 
 app.use(express.static(__dirname, {
-  maxAge: '1d',
+  maxAge: '0',
   setHeaders: (res, filePath) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (filePath.endsWith('.webmanifest')) {
@@ -24,6 +25,8 @@ app.use(express.static(__dirname, {
       res.setHeader('Content-Type', 'image/webp');
     } else if (filePath.endsWith('.png')) {
       res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
     }
   }
 }));
