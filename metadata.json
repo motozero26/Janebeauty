@@ -1,0 +1,8 @@
+{
+  "name": "JANY BEAUTY",
+  "description": "Perfumes, cosméticos, skincare, autocuidado e presentes com curadoria especial da Jany, atendimento próximo e ofertas para sua próxima escolha.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
