@@ -9,10 +9,21 @@ const app = express();
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 app.use(express.static(__dirname, {
+  maxAge: '1d',
   setHeaders: (res, filePath) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     if (filePath.endsWith('.webmanifest')) {
       res.setHeader('Content-Type', 'application/manifest+json');
+    } else if (filePath.endsWith('.webp')) {
+      res.setHeader('Content-Type', 'image/webp');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
     }
   }
 }));
