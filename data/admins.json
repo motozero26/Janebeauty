@@ -1,0 +1,14 @@
+[
+  {
+    "id": "owner-mackson",
+    "email": "mackson.weiber13@gmail.com",
+    "name": "Mackson Weiber",
+    "role": "superadmin",
+    "status": "active",
+    "isOwner": true,
+    "createdAt": "2026-09-14T20:00:00.000Z",
+    "addedBy": "Sistema (Proprietário)",
+    "lastLoginAt": "2026-09-16T02:56:40.704Z",
+    "firebaseUid": "test_google_uid"
+  }
+]

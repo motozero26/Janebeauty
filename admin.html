@@ -1,0 +1,3127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Produtos | JANY BEAUTY Admin</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    :root {
+      --navy: #160b2c;
+      --navy-light: #2e0d57;
+      --plum: #3f0f75;
+      --berry: #9c164a;
+      --berry-bright: #e94775;
+      --berry-light: #fff0f5;
+      --gold: #d4af37;
+      --canvas: #fcf7fa;
+      --card-bg: #ffffff;
+      --border: #f0d8e6;
+      --border-dark: #d8b8cc;
+      --ink: #2b1834;
+      --ink-muted: #6e5874;
+      --ink-light: #947e9b;
+      --success: #15803d;
+      --success-bg: #f0fdf4;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 2px 8px rgba(35, 12, 54, 0.06);
+      --shadow-md: 0 8px 24px rgba(35, 12, 54, 0.09);
+      --shadow-lg: 0 16px 40px rgba(35, 12, 54, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Utilitários */
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+
+    /* Login Screen */
+    .auth-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 20%, #3a1555 0%, #160b2c 70%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-wrapper::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(233, 71, 117, 0.22) 0%, transparent 70%);
+      top: -150px;
+      right: -150px;
+      pointer-events: none;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 38px 32px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 2;
+    }
+
+    .auth-logo-wrap {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-logo-wrap img {
+      max-width: 220px;
+      height: auto;
+      max-height: 80px;
+      object-fit: contain;
+    }
+
+    .auth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff0f6;
+      color: var(--berry);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #fed7e2;
+      margin-bottom: 12px;
+    }
+
+    .auth-title {
+      font-family: Georgia, serif;
+      font-size: 26px;
+      color: var(--navy);
+      text-align: center;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--ink-muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 7px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 15px;
+      border: 1.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      background: #faf7fa;
+      color: var(--ink);
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .form-control:focus {
+      background: #ffffff;
+      border-color: var(--berry-bright);
+      box-shadow: 0 0 0 3px rgba(233, 71, 117, 0.15);
+    }
+
+    .btn-toggle-pass {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--ink-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .btn-toggle-pass:hover {
+      color: var(--navy);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      background: linear-gradient(135deg, #160b2c 0%, #3f0f75 60%, #9c164a 100%);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(63, 15, 117, 0.3);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(63, 15, 117, 0.4);
+      filter: brightness(1.06);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .alert-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    .btn-google-login {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 15px 22px;
+      background: #ffffff;
+      color: #1f2937;
+      border: 1.5px solid #d1d5db;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      margin-top: 6px;
+      margin-bottom: 16px;
+    }
+
+    .btn-google-login:hover {
+      background: #fff5f8;
+      border-color: #f472b6;
+      box-shadow: 0 6px 18px rgba(236, 72, 153, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .btn-google-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-google-login:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .auth-info-card {
+      background: #fdf2f8;
+      border: 1px solid #fbcfe8;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .auth-info-card p {
+      font-size: 12.5px;
+      color: #831843;
+      line-height: 1.5;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .firebase-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      font-size: 12px;
+      color: #fdf2f8;
+      font-weight: 600;
+    }
+
+    .realtime-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+
+    .back-to-store {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--ink-muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-to-store:hover {
+      color: var(--berry);
+      text-decoration: underline;
+    }
+
+    /* Dashboard Layout */
+    .admin-header {
+      background: #160b2c;
+      color: #ffffff;
+      border-bottom: 2px solid var(--berry);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .admin-nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .admin-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #ffffff;
+    }
+
+    .admin-logo-group img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .admin-pill {
+      background: var(--berry);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    .admin-user-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn-nav-primary {
+      background: var(--berry-bright);
+      border-color: var(--berry-bright);
+    }
+
+    .btn-nav-primary:hover {
+      background: #d63363;
+      border-color: #d63363;
+    }
+
+    /* Main Content */
+    .admin-main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+    }
+
+    .admin-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .admin-heading {
+      font-family: Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.2;
+    }
+
+    .admin-desc {
+      font-size: 14px;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    /* Stats bar */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--berry-light);
+      color: var(--berry);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-info .stat-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.1;
+    }
+
+    .stat-info .stat-lbl {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    /* Controls toolbar */
+    .toolbar {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+      max-width: 360px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      font-size: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      background: #faf7fa;
+      color: var(--ink);
+    }
+
+    .search-box input:focus {
+      background: #ffffff;
+      border-color: var(--berry);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-light);
+      pointer-events: none;
+    }
+
+    .filter-select {
+      padding: 9px 12px;
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #faf7fa;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      border-color: var(--berry);
+      background: #ffffff;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary-action {
+      background: linear-gradient(135deg, #160b2c 0%, #3f0f75 60%, #9c164a 100%);
+      color: #ffffff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(63, 15, 117, 0.25);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary-action:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary-action {
+      background: #ffffff;
+      color: var(--navy);
+      border: 1px solid var(--border-dark);
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-secondary-action:hover {
+      background: #fdf5f9;
+      border-color: var(--berry);
+      color: var(--berry);
+    }
+
+    /* Product Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 22px;
+    }
+
+    .product-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: #e4c2d6;
+    }
+
+    .product-img-wrap {
+      width: 100%;
+      height: 230px;
+      background: #fbf5f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .product-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      padding: 14px;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-img-wrap img {
+      transform: scale(1.04);
+    }
+
+    .product-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(135deg, #160b2c 0%, #3f0f75 100%);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .product-details {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .product-title {
+      font-family: Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .product-desc {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .product-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .product-price {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--berry);
+    }
+
+    .product-stars {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+
+    .product-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-action-edit {
+      background: #fdf2f7;
+      color: var(--berry);
+      border: 1px solid #fed7e2;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-edit:hover {
+      background: var(--berry);
+      color: #ffffff;
+      border-color: var(--berry);
+    }
+
+    .btn-action-duplicate {
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-duplicate:hover {
+      background: #475569;
+      color: #ffffff;
+    }
+
+    .btn-action-delete {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-delete:hover {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 2px dashed var(--border);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state h3 {
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      color: var(--ink-muted);
+      font-size: 14px;
+      max-width: 400px;
+      margin: 0 auto 20px;
+    }
+
+    /* Tabs Navigation */
+    .admin-tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .admin-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-light);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: -6px;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .admin-tab-btn:hover {
+      color: var(--berry);
+      background: rgba(156, 22, 74, 0.05);
+    }
+
+    .admin-tab-btn.active {
+      color: var(--navy);
+      border-bottom-color: var(--berry);
+      font-weight: 700;
+      background: transparent;
+    }
+
+    .tab-badge {
+      background: #f4edf2;
+      color: var(--navy);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .admin-tab-btn.active .tab-badge {
+      background: var(--berry);
+      color: #ffffff;
+    }
+
+    /* Admins Table & Cards */
+    .admins-table-card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    .admins-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .admins-table th {
+      background: #faf7fa;
+      padding: 14px 18px;
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admins-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+
+    .admins-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .admins-table tr:hover {
+      background: #fdfafc;
+    }
+
+    .admin-user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-avatar-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #160b2c 0%, #9c164a 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .admin-avatar-circle.owner {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    }
+
+    .badge-role-owner {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-role-admin {
+      background: #ede9fe;
+      color: #5b21b6;
+      border: 1px solid #ddd6fe;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-role-editor {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-status-active {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-status-inactive {
+      background: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .admin-guide-card {
+      background: #f8fafc;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-top: 24px;
+    }
+
+    .admin-guide-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-guide-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .admin-guide-step-item {
+      background: #ffffff;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      border: 1px solid #e2e8f0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .admin-guide-step-item strong {
+      display: block;
+      color: var(--navy);
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    /* Modais */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 5, 26, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-window {
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      overflow-y: auto;
+      transform: translateY(15px);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-backdrop.active .modal-window {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 10;
+    }
+
+    .modal-title {
+      font-family: Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: var(--ink-light);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+    }
+
+    .btn-close-modal:hover {
+      background: #f4edf2;
+      color: var(--navy);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #faf7fa;
+    }
+
+    .tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      background: #f3e9f0;
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .chip:hover {
+      background: #ebd8e7;
+      border-color: var(--berry);
+    }
+
+    /* Image upload box */
+    .image-picker-zone {
+      border: 2px dashed var(--border-dark);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      background: #faf7fa;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .image-picker-zone:hover {
+      border-color: var(--berry);
+      background: #fdf5f9;
+    }
+
+    .image-preview-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .preview-thumb {
+      width: 70px;
+      height: 70px;
+      border-radius: 8px;
+      object-fit: contain;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 4px;
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #160b2c;
+      color: #ffffff;
+      border-left: 4px solid var(--berry-bright);
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-width: 380px;
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .admin-nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .admin-user-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toolbar-left, .toolbar-right {
+        width: 100%;
+      }
+      .search-box {
+        max-width: 100%;
+      }
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- VIEW 1: TELA DE LOGIN (PROTEÇÃO EXCLUSIVA COM CONTA GOOGLE) -->
+  <section id="authSection" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-logo-wrap">
+        <img src="/logo.png" alt="JANY BEAUTY" onerror="this.style.display='none'">
+      </div>
+
+      <div class="text-center">
+        <span class="auth-badge">🔒 Acesso Restrito</span>
+        <h1 class="auth-title">Painel Administrativo</h1>
+        <p class="auth-subtitle">Acesso restrito para administradores autorizados através da Conta Google.</p>
+      </div>
+
+      <div id="loginAlert" class="alert alert-danger hidden" role="alert">
+        <span>⚠️</span>
+        <span id="loginAlertText">Acesso não autorizado para esta conta Google.</span>
+      </div>
+
+      <!-- Login Exclusivo com Conta Google (Firebase Auth) -->
+      <button type="button" id="btnGoogleLogin" class="btn-google-login">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Entrar com Conta Google</span>
+      </button>
+
+      <div class="auth-info-card">
+        <p>
+          O painel valida instantaneamente sua conta Google contra a lista de administradores autorizados.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <a href="/" class="back-to-store">← Voltar para a Loja Principal</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- VIEW 2: PAINEL ADMINISTRATIVO (QUANDO AUTENTICADO) -->
+  <section id="dashboardSection" class="hidden" style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Header Admin -->
+    <header class="admin-header">
+      <div class="admin-nav">
+        <div class="admin-logo-group">
+          <img src="/logo.png" alt="JANY BEAUTY" onerror="this.style.display='none'">
+          <span class="admin-pill">ADMIN</span>
+        </div>
+
+        <div class="admin-user-group">
+          <span style="font-size: 13px; color: #f2b5ff;">Logado como: <strong id="currentUserLabel">admin</strong></span>
+          <span class="firebase-status-badge" id="firebasePill" title="Banco de dados Firebase Firestore conectado">
+            <span class="pulse-dot"></span>
+            <span id="firebasePillText">Firebase Firestore: Ativo</span>
+          </span>
+          <button type="button" id="btnConnectGoogleHeader" class="btn-nav hidden" style="background: rgba(255, 255, 255, 0.15); border-color: #fbcfe8;" title="Conectar ao Firebase com mackson.weiber13@gmail.com para sincronização em tempo real">
+            <span>🔗 Conectar Google</span>
+          </button>
+          <a href="/" target="_blank" class="btn-nav" title="Abrir loja principal em nova guia">
+            <span>Ver Loja</span>
+            <span style="font-size: 11px;">↗</span>
+          </a>
+          <button type="button" id="btnLogout" class="btn-nav" style="background: rgba(185, 28, 28, 0.4); border-color: rgba(239, 68, 68, 0.4);">
+            <span>Sair</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- Barra de Abas de Navegação -->
+      <div class="admin-tab-bar">
+        <button type="button" id="tabBtnProducts" class="admin-tab-btn active" title="Gerenciar catálogo de produtos">
+          <span class="tab-icon">🛍️</span>
+          <span>Produtos</span>
+          <span id="tabBadgeProducts" class="tab-badge">0</span>
+        </button>
+        <button type="button" id="tabBtnAdmins" class="admin-tab-btn" title="Gerenciar e-mails autorizados para login de administradores">
+          <span class="tab-icon">👥</span>
+          <span>Administradores</span>
+          <span id="tabBadgeAdmins" class="tab-badge">1</span>
+        </button>
+      </div>
+
+      <!-- ABA 1: GERENCIAMENTO DE PRODUTOS -->
+      <div id="tabPaneProducts">
+        <div class="admin-title-row">
+          <div>
+            <h1 class="admin-heading">Gerenciamento de Produtos</h1>
+            <p class="admin-desc">Adicione, edite preços, fotos e descrições dos produtos exibidos na página inicial da JANY BEAUTY.</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btnOpenNewProductModal" class="btn-primary-action">
+              <span>+ Adicionar Novo Produto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Métricas / KPIs -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🛍️</div>
+            <div class="stat-info">
+              <div id="statTotal" class="stat-val">0</div>
+              <div class="stat-lbl">Total de Produtos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">★</div>
+            <div class="stat-info">
+              <div id="statFeatured" class="stat-val">0</div>
+              <div class="stat-lbl">Mais Vendidos / Tags</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💬</div>
+            <div class="stat-info">
+              <div id="statWithWhatsapp" class="stat-val">0</div>
+              <div class="stat-lbl">Com WhatsApp Direto</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de ferramentas (Filtros e Busca) -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" id="searchInput" placeholder="Buscar por nome ou descrição...">
+            </div>
+
+            <select id="filterTagSelect" class="filter-select">
+              <option value="all">Todas as Categorias / Selos</option>
+              <option value="mais_vendido">★ Mais vendido</option>
+              <option value="sem_tag">Sem Selo Promocional</option>
+            </select>
+
+            <select id="sortSelect" class="filter-select">
+              <option value="default">Ordem do Catálogo</option>
+              <option value="az">Nome (A - Z)</option>
+              <option value="za">Nome (Z - A)</option>
+            </select>
+          </div>
+
+          <div class="toolbar-right">
+            <div id="realtimeStatusIndicator" class="realtime-status-pill" title="Todas as alterações de produtos (adição, edição e exclusão) são salvas em tempo real automaticamente com o Firebase e refletem na vitrine da loja.">
+              <span class="pulse-dot"></span>
+              <span>⚡ Sincronização em Tempo Real: Ativa</span>
+            </div>
+            <button type="button" id="btnSyncFirebase" class="btn-secondary-action" style="font-weight: 500; font-size: 12px;" title="As alterações já são salvas em tempo real automaticamente a cada clique. Use este botão caso queira reenviar todo o catálogo completo de uma só vez para o Firebase Firestore.">
+              <span>↺ Forçar Reenvio Completo</span>
+            </button>
+            <button type="button" id="btnResetDefaults" class="btn-secondary-action" title="Restaura os 10 produtos originais caso necessário">
+              <span>↺ Restaurar Catálogo Padrão</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grade de Produtos -->
+        <div id="productsGrid" class="product-grid">
+          <!-- Inserido dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- ABA 2: GERENCIAMENTO DE ADMINISTRADORES -->
+      <div id="tabPaneAdmins" class="hidden">
+        <div class="admin-title-row">
+          <div>
+            <h1 class="admin-heading">Gerenciamento de Administradores</h1>
+            <p class="admin-desc">Autorize contas de e-mail Google para acessar o painel de administração da JANY BEAUTY e sincronizar produtos no Firebase Firestore.</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btnOpenAddAdminModal" class="btn-primary-action">
+              <span>+ Autorizar Novo E-mail</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Métricas de Administradores -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👑</div>
+            <div class="stat-info">
+              <div class="stat-val" style="font-size: 15px; word-break: break-all;" id="statOwnerEmail">mackson.weiber13@gmail.com</div>
+              <div class="stat-lbl">Proprietário Principal (Superadmin)</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+              <div id="statTotalAdmins" class="stat-val">1</div>
+              <div class="stat-lbl">Contas Autorizadas</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-info">
+              <div class="stat-val" style="font-size: 16px; color: #047857;">Firestore: Ativo</div>
+              <div class="stat-lbl">Coleção 'admins' na Nuvem</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Administradores -->
+        <div class="admins-table-card">
+          <table class="admins-table">
+            <thead>
+              <tr>
+                <th>Usuário / Nome</th>
+                <th>E-mail Google Autorizado</th>
+                <th>Nível de Permissão</th>
+                <th>Status</th>
+                <th>Data de Inclusão</th>
+                <th style="text-align: right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTableBody">
+              <!-- Inserido dinamicamente via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Guia Prático de Instruções -->
+        <div class="admin-guide-card">
+          <div class="admin-guide-title">
+            <span>💡</span>
+            <span>Como funciona o acesso de novos administradores?</span>
+          </div>
+          <div class="admin-guide-steps">
+            <div class="admin-guide-step-item">
+              <strong>1. Cadastre o E-mail</strong>
+              Clique no botão <em>"+ Autorizar Novo E-mail"</em> e digite o endereço de e-mail Google da pessoa autorizada.
+            </div>
+            <div class="admin-guide-step-item">
+              <strong>2. Compartilhe o Link</strong>
+              Envie o link <code>/admin</code> do painel para o colaborador abrir no navegador dele.
+            </div>
+            <div class="admin-guide-step-item">
+              <strong>3. Login com Conta Google</strong>
+              Na tela de login do painel, o colaborador clica em <strong>"Entrar com Conta Google"</strong> usando a mesma conta cadastrada.
+            </div>
+            <div class="admin-guide-step-item">
+              <strong>4. Acesso Liberado</strong>
+              O sistema e o Firebase Firestore validam a permissão em tempo real e liberam o painel completo.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+
+  <!-- MODAL: ADICIONAR OU EDITAR PRODUTO -->
+  <div id="productModalBackdrop" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 id="modalProductTitle" class="modal-title">Adicionar Novo Produto</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseProductModal" aria-label="Fechar">&times;</button>
+      </div>
+
+      <form id="productForm">
+        <div class="modal-body">
+          <input type="hidden" id="editProductId" value="">
+
+          <!-- Nome do Produto -->
+          <div class="form-group">
+            <label class="form-label" for="prodTitle">Nome do Produto *</label>
+            <input type="text" id="prodTitle" class="form-control" placeholder="ex: The Blend — O Boticário" required>
+          </div>
+
+          <!-- Tag / Selo Promocional -->
+          <div class="form-group">
+            <label class="form-label" for="prodTag">Selo / Tag em Destaque (opcional)</label>
+            <input type="text" id="prodTag" class="form-control" placeholder="ex: ★ Mais vendido, Lançamento, Edição Especial...">
+            <div class="tag-chips">
+              <span class="chip" onclick="setProductTag('★ Mais vendido')">★ Mais vendido</span>
+              <span class="chip" onclick="setProductTag('✦ Lançamento')">✦ Lançamento</span>
+              <span class="chip" onclick="setProductTag('🔥 Oferta Especial')">🔥 Oferta Especial</span>
+              <span class="chip" onclick="setProductTag('✨ Favorito da Jany')">✨ Favorito da Jany</span>
+              <span class="chip" onclick="setProductTag('')">Limpar Selo</span>
+            </div>
+          </div>
+
+          <!-- Preço e Avaliação em colunas -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="prodPrice">Preço Exibido</label>
+              <input type="text" id="prodPrice" class="form-control" placeholder="Consultar ou R$ 199,90" value="Consultar">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prodRating">Classificação em Estrelas</label>
+              <select id="prodRating" class="form-control">
+                <option value="★★★★★ <span>Seleção 5 estrelas da Jany</span>">★★★★★ (5 estrelas da Jany)</option>
+                <option value="★★★★☆ <span>Seleção 4 estrelas</span>">★★★★☆ (4 estrelas)</option>
+                <option value="★★★★★ <span>Altíssima Fixação</span>">★★★★★ (Altíssima Fixação)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Descrição -->
+          <div class="form-group">
+            <label class="form-label" for="prodDescription">Descrição do Produto</label>
+            <textarea id="prodDescription" class="form-control" rows="3" placeholder="Fragrância marcante e sofisticada, perfeita para o dia a dia e momentos marcantes..."></textarea>
+          </div>
+
+          <!-- Foto / Imagem do Produto -->
+          <div class="form-group">
+            <label class="form-label">Foto do Produto *</label>
+            <div class="image-picker-zone" id="dropZone">
+              <div style="font-size: 24px; margin-bottom: 6px;">📸</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--navy);">Arraste uma foto ou clique para enviar</div>
+              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Formatos aceitos: PNG, JPG, WEBP (qualquer tamanho)</div>
+              <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div style="margin-top: 10px;">
+              <label class="form-label" for="prodImageUrl" style="font-size: 12px;">Ou informe o caminho/URL da imagem:</label>
+              <input type="text" id="prodImageUrl" class="form-control" placeholder="ex: /1789327002427-1.jpg ou https://...">
+            </div>
+
+            <!-- Preview da Foto -->
+            <div id="imagePreviewContainer" class="image-preview-area hidden">
+              <img id="imagePreview" src="" alt="Pré-visualização" class="preview-thumb">
+              <div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--navy);">Foto Selecionada</div>
+                <button type="button" id="btnRemoveImage" style="background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; text-decoration: underline;">Remover imagem</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp de Atendimento -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+              <label class="form-label" for="prodWhatsapp" style="margin-bottom: 0;">Link do WhatsApp (Tirar Dúvidas)</label>
+              <button type="button" id="btnAutoGenerateWhatsapp" style="background: none; border: none; color: var(--berry); font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline;">Gerar automático</button>
+            </div>
+            <input type="text" id="prodWhatsapp" class="form-control" placeholder="https://wa.me/5584987408061?text=...">
+          </div>
+
+          <!-- Link de Compra / Checkout -->
+          <div class="form-group">
+            <label class="form-label" for="prodBuyLink">Link do Botão "Comprar agora"</label>
+            <input type="text" id="prodBuyLink" class="form-control" placeholder="#checkout ou link do Mercado Pago/Yampi" value="#checkout">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-action" id="btnCancelProductModal">Cancelar</button>
+          <button type="submit" id="btnSaveProduct" class="btn-primary-action">
+            <span>Salvar Produto</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- MODAL: CONFIRMAR EXCLUSÃO PRODUTO -->
+  <div id="deleteModalBackdrop" class="modal-backdrop">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: var(--danger);">Excluir Produto?</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseDeleteModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza de que deseja remover o produto <strong id="deleteProductTitle" style="color: var(--navy);"></strong> do catálogo?</p>
+        <p style="font-size: 13px; color: var(--ink-muted);">Ele deixará de ser exibido na vitrine principal da loja imediatamente.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-action" id="btnCancelDelete">Cancelar</button>
+        <button type="button" id="btnConfirmDelete" class="btn-primary-action" style="background: var(--danger);">Excluir Produto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUTORIZAR NOVO ADMINISTRADOR -->
+  <div id="addAdminModalBackdrop" class="modal-backdrop">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Autorizar Novo Administrador</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseAddAdminModal" aria-label="Fechar">&times;</button>
+      </div>
+
+      <form id="addAdminForm" autocomplete="off">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newAdminEmail">E-mail Google do Colaborador *</label>
+            <input type="email" id="newAdminEmail" class="form-control" required placeholder="ex: colaborador@gmail.com" autocomplete="off">
+            <p style="font-size: 12px; color: var(--ink-light); margin-top: 4px;">Deve ser uma conta Google válida para permitir login direto via botão.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newAdminName">Nome ou Identificação (opcional)</label>
+            <input type="text" id="newAdminName" class="form-control" placeholder="ex: Amanda (Gerente de Vendas)" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newAdminRole">Nível de Permissão *</label>
+            <select id="newAdminRole" class="form-control" style="cursor: pointer;">
+              <option value="admin">Administrador (Gerencia produtos e administradores)</option>
+              <option value="editor">Editor (Cadastra e edita catálogo de produtos)</option>
+            </select>
+          </div>
+
+          <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12px; color: #831843; line-height: 1.4;">
+            ✨ O colaborador será cadastrado e sincronizado no Firebase Firestore automaticamente. Ele poderá acessar <code>/admin</code> e clicar em <em>"Entrar com Conta Google"</em>.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-action" id="btnCancelAddAdminModal">Cancelar</button>
+          <button type="submit" id="btnSubmitAddAdmin" class="btn-primary-action">
+            <span>+ Autorizar e Liberar Acesso</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR REVOGAÇÃO DE ADMINISTRADOR -->
+  <div id="deleteAdminModalBackdrop" class="modal-backdrop">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: var(--danger);">Revogar Acesso?</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseDeleteAdminModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza de que deseja revogar o acesso de <strong id="deleteAdminEmailDisplay" style="color: var(--navy);"></strong>?</p>
+        <p style="font-size: 13px; color: var(--ink-muted);">Esta conta não poderá mais fazer login nem gerenciar produtos no painel.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-action" id="btnCancelDeleteAdmin">Cancelar</button>
+        <button type="button" id="btnConfirmDeleteAdmin" class="btn-primary-action" style="background: var(--danger);">Revogar Acesso</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container de Notificações Toast -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JAVASCRIPT DO PAINEL -->
+      <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, getDocs, setDoc, deleteDoc, collection, getDocFromServer, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+
+    // Firebase Security and Error Contract
+    const OperationType = {
+      CREATE: 'create',
+      UPDATE: 'update',
+      DELETE: 'delete',
+      LIST: 'list',
+      GET: 'get',
+      WRITE: 'write',
+    };
+
+    function handleFirestoreError(error, operationType, path) {
+      const errInfo = {
+        error: error instanceof Error ? error.message : String(error),
+        authInfo: {
+          userId: fbAuth?.currentUser?.uid || null,
+          email: fbAuth?.currentUser?.email || null,
+          emailVerified: fbAuth?.currentUser?.emailVerified || null,
+          isAnonymous: fbAuth?.currentUser?.isAnonymous || null,
+          tenantId: fbAuth?.currentUser?.tenantId || null,
+          providerInfo: fbAuth?.currentUser?.providerData?.map(provider => ({
+            providerId: provider.providerId,
+            email: provider.email,
+          })) || []
+        },
+        operationType,
+        path
+      };
+      console.error('Firestore Error: ', JSON.stringify(errInfo));
+    }
+
+    // Estado Global da Aplicação
+    let authToken = localStorage.getItem('jany_admin_token') || '';
+    let currentAdminUser = localStorage.getItem('jany_admin_user') || 'admin';
+    let allProducts = [];
+    let activeDeleteId = null;
+    let allAdmins = [];
+    let activeDeleteAdminId = null;
+    let activeDeleteAdminEmail = '';
+    let currentTab = 'products';
+
+    // Instâncias do Firebase
+    let fbApp = null;
+    let fbAuth = null;
+    let fbDb = null;
+    let isFirebaseReady = false;
+
+    // Elementos DOM principais
+    const authSection = document.getElementById('authSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const loginAlert = document.getElementById('loginAlert');
+    const loginAlertText = document.getElementById('loginAlertText');
+    const currentUserLabel = document.getElementById('currentUserLabel');
+    const productsGrid = document.getElementById('productsGrid');
+    const firebasePillText = document.getElementById('firebasePillText');
+
+    // Inicialização robusta (suporta se documento já estiver pronto)
+    function startAdminApp() {
+      initFirebase();
+      checkAuthentication();
+      setupEventListeners();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startAdminApp);
+    } else {
+      startAdminApp();
+    }
+
+    // 0. Inicialização do Firebase
+    async function initFirebase() {
+      try {
+        const res = await fetch('/firebase-applet-config.json');
+        if (!res.ok) return;
+        const cfg = await res.json();
+        fbApp = initializeApp(cfg);
+        fbDb = getFirestore(fbApp, cfg.firestoreDatabaseId);
+        fbAuth = getAuth(fbApp);
+
+        try {
+          await getDocFromServer(doc(fbDb, 'test', 'connection'));
+          isFirebaseReady = true;
+          console.log('🔥 Conexão com o Firebase Firestore validada.');
+        } catch (connErr) {
+          if (connErr instanceof Error && connErr.message.includes('the client is offline')) {
+            console.error('Verifique sua configuração de rede com o Firebase.');
+          }
+        }
+
+        // Listener em tempo real do Firestore: mantém o catálogo e a grade atualizados a cada alteração
+        startFirestoreRealtimeListener();
+
+        onAuthStateChanged(fbAuth, async (user) => {
+          const btnConnect = document.getElementById('btnConnectGoogleHeader');
+          if (user) {
+            if (firebasePillText) {
+              firebasePillText.textContent = `Firestore: ${user.email}`;
+            }
+            if (btnConnect) btnConnect.classList.add('hidden');
+
+            // Se o usuário está autenticado no Google mas ainda não possui token no painel
+            if (!authToken) {
+              try {
+                const res = await fetch('/api/admin/firebase-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email: user.email,
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    emailVerified: user.emailVerified
+                  })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                  authToken = data.token;
+                  currentAdminUser = data.user.username;
+                  localStorage.setItem('jany_admin_token', authToken);
+                  localStorage.setItem('jany_admin_user', currentAdminUser);
+                  showDashboardView();
+                  loadProducts();
+                  loadAdmins();
+                }
+              } catch (authSyncErr) {
+                console.warn('Sincronização de sessão Google:', authSyncErr);
+              }
+            }
+          } else {
+            if (firebasePillText) {
+              firebasePillText.textContent = 'Firestore: Pronto';
+            }
+            if (btnConnect) btnConnect.classList.remove('hidden');
+          }
+        });
+      } catch (err) {
+        console.warn('Inicialização Firebase:', err);
+      }
+    }
+
+    let unsubscribeFirestore = null;
+    function startFirestoreRealtimeListener() {
+      if (!fbDb || unsubscribeFirestore) return;
+      try {
+        unsubscribeFirestore = onSnapshot(collection(fbDb, 'products'), (snap) => {
+          if (!snap.empty) {
+            const fsProducts = [];
+            snap.forEach(d => fsProducts.push(d.data()));
+            fsProducts.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+            // Evita redesenhar enquanto o usuário está digitando no modal de produto
+            const modalBackdrop = document.getElementById('productModalBackdrop');
+            const isModalOpen = modalBackdrop && modalBackdrop.classList.contains('active');
+
+            allProducts = fsProducts;
+            if (!isModalOpen) {
+              renderProducts();
+              updateStats();
+            }
+            console.log('⚡ Catálogo sincronizado em tempo real com o Firestore:', fsProducts.length, 'produtos');
+          }
+        }, (err) => {
+          console.warn('Listener Firestore tempo real:', err.message);
+        });
+      } catch (err) {
+        console.warn('Falha ao iniciar listener Firestore:', err.message);
+      }
+    }
+
+    // 1. Verificação de Autenticação
+    async function checkAuthentication() {
+      if (!authToken) {
+        showLoginView();
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/me', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentAdminUser = data.user.username;
+          localStorage.setItem('jany_admin_user', currentAdminUser);
+          showDashboardView();
+          loadProducts();
+          loadAdmins();
+        } else {
+          logoutUser(false);
+        }
+      } catch (err) {
+        console.error('Erro na verificação de sessão:', err);
+        showLoginView();
+      }
+    }
+
+    function showLoginView() {
+      if (authSection) authSection.classList.remove('hidden');
+      if (dashboardSection) dashboardSection.classList.add('hidden');
+      const btnGoogle = document.getElementById('btnGoogleLogin');
+      if (btnGoogle) btnGoogle.focus();
+    }
+
+    function showDashboardView() {
+      if (authSection) authSection.classList.add('hidden');
+      if (dashboardSection) dashboardSection.classList.remove('hidden');
+      if (currentUserLabel) currentUserLabel.textContent = currentAdminUser;
+    }
+
+    function logoutUser(notify = true) {
+      if (authToken) {
+        fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        }).catch(() => {});
+      }
+      if (fbAuth) {
+        fbSignOut(fbAuth).catch(() => {});
+      }
+      authToken = '';
+      localStorage.removeItem('jany_admin_token');
+      localStorage.removeItem('jany_admin_user');
+      showLoginView();
+      if (notify) {
+        showToast('Sessão encerrada com sucesso.', 'info');
+      }
+    }
+
+    // 2. Event Listeners
+    function setupEventListeners() {
+      // Login com Conta Google (Firebase Auth)
+      const btnGoogle = document.getElementById('btnGoogleLogin');
+      if (btnGoogle) {
+        btnGoogle.addEventListener('click', handleGoogleLogin);
+      }
+
+      // Sincronizar catálogo com Firebase
+      const btnSync = document.getElementById('btnSyncFirebase');
+      if (btnSync) {
+        btnSync.addEventListener('click', handleSyncWithFirebase);
+      }
+
+      // Logout direto (sem confirm de window para evitar bloqueio em iframes)
+      const btnLogout = document.getElementById('btnLogout');
+      if (btnLogout) {
+        btnLogout.addEventListener('click', (e) => {
+          e.preventDefault();
+          logoutUser(true);
+        });
+      }
+
+      // Conectar Google (Firebase) via Header
+      const btnConnectGoogleHeader = document.getElementById('btnConnectGoogleHeader');
+      if (btnConnectGoogleHeader) {
+        btnConnectGoogleHeader.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleGoogleLogin();
+        });
+      }
+
+      // Busca e Filtros
+      const searchInput = document.getElementById('searchInput');
+      const filterTagSelect = document.getElementById('filterTagSelect');
+      const sortSelect = document.getElementById('sortSelect');
+      if (searchInput) searchInput.addEventListener('input', renderProducts);
+      if (filterTagSelect) filterTagSelect.addEventListener('change', renderProducts);
+      if (sortSelect) sortSelect.addEventListener('change', renderProducts);
+
+      // Botão Novo Produto (Toolbar)
+      const btnOpenNewProduct = document.getElementById('btnOpenNewProductModal');
+      if (btnOpenNewProduct) {
+        btnOpenNewProduct.addEventListener('click', (e) => {
+          e.preventDefault();
+          openProductModal();
+        });
+      }
+
+      // Fechar Modal Produto
+      const btnCloseProductModal = document.getElementById('btnCloseProductModal');
+      if (btnCloseProductModal) btnCloseProductModal.addEventListener('click', closeProductModal);
+
+      const btnCancelProductModal = document.getElementById('btnCancelProductModal');
+      if (btnCancelProductModal) btnCancelProductModal.addEventListener('click', closeProductModal);
+
+      const productModalBackdrop = document.getElementById('productModalBackdrop');
+      if (productModalBackdrop) {
+        productModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === productModalBackdrop) closeProductModal();
+        });
+      }
+
+      // Submeter formulário de produto
+      const productForm = document.getElementById('productForm');
+      if (productForm) {
+        productForm.addEventListener('submit', handleSaveProduct);
+      }
+
+      // Upload de imagem e drag & drop
+      setupImagePicker();
+
+      // Gerador automático de WhatsApp
+      const btnAutoGenerateWhatsapp = document.getElementById('btnAutoGenerateWhatsapp');
+      if (btnAutoGenerateWhatsapp) {
+        btnAutoGenerateWhatsapp.addEventListener('click', (e) => {
+          e.preventDefault();
+          const prodTitle = document.getElementById('prodTitle');
+          const prodWhatsapp = document.getElementById('prodWhatsapp');
+          const title = (prodTitle && prodTitle.value.trim()) || 'este produto';
+          const msg = encodeURIComponent(`Olá! Tenho uma dúvida sobre o produto ${title} da JANY BEAUTY.\nOrigem: site JANY BEAUTY`);
+          if (prodWhatsapp) {
+            prodWhatsapp.value = `https://wa.me/5584987408061?text=${msg}`;
+            showToast('Link do WhatsApp gerado com sucesso!', 'success');
+          }
+        });
+      }
+
+      // Modal Exclusão
+      const btnCloseDeleteModal = document.getElementById('btnCloseDeleteModal');
+      if (btnCloseDeleteModal) btnCloseDeleteModal.addEventListener('click', closeDeleteModal);
+
+      const btnCancelDelete = document.getElementById('btnCancelDelete');
+      if (btnCancelDelete) btnCancelDelete.addEventListener('click', closeDeleteModal);
+
+      const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+      if (btnConfirmDelete) btnConfirmDelete.addEventListener('click', handleConfirmDelete);
+
+      const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+      if (deleteModalBackdrop) {
+        deleteModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === deleteModalBackdrop) closeDeleteModal();
+        });
+      }
+
+      // Restaurar padrões
+      const btnResetDefaults = document.getElementById('btnResetDefaults');
+      if (btnResetDefaults) {
+        btnResetDefaults.addEventListener('click', handleResetDefaults);
+      }
+
+      // Formatador de preço automático
+      const prodPrice = document.getElementById('prodPrice');
+      if (prodPrice) {
+        prodPrice.addEventListener('blur', () => {
+          let v = prodPrice.value.trim();
+          if (v && !v.toLowerCase().startsWith('r$') && !isNaN(parseFloat(v.replace(',', '.')))) {
+            const num = parseFloat(v.replace(',', '.'));
+            prodPrice.value = 'R$ ' + num.toFixed(2).replace('.', ',');
+          }
+        });
+      }
+
+      // Alternância de Abas (Produtos / Administradores)
+      const tabBtnProducts = document.getElementById('tabBtnProducts');
+      if (tabBtnProducts) {
+        tabBtnProducts.addEventListener('click', () => switchTab('products'));
+      }
+      const tabBtnAdmins = document.getElementById('tabBtnAdmins');
+      if (tabBtnAdmins) {
+        tabBtnAdmins.addEventListener('click', () => switchTab('admins'));
+      }
+
+      // Modais de Administrador
+      const btnOpenAddAdminModal = document.getElementById('btnOpenAddAdminModal');
+      if (btnOpenAddAdminModal) btnOpenAddAdminModal.addEventListener('click', openAddAdminModal);
+
+      const btnCloseAddAdminModal = document.getElementById('btnCloseAddAdminModal');
+      if (btnCloseAddAdminModal) btnCloseAddAdminModal.addEventListener('click', closeAddAdminModal);
+
+      const btnCancelAddAdminModal = document.getElementById('btnCancelAddAdminModal');
+      if (btnCancelAddAdminModal) btnCancelAddAdminModal.addEventListener('click', closeAddAdminModal);
+
+      const addAdminForm = document.getElementById('addAdminForm');
+      if (addAdminForm) addAdminForm.addEventListener('submit', handleAddAdmin);
+
+      const addAdminModalBackdrop = document.getElementById('addAdminModalBackdrop');
+      if (addAdminModalBackdrop) {
+        addAdminModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === addAdminModalBackdrop) closeAddAdminModal();
+        });
+      }
+
+      const btnCloseDeleteAdminModal = document.getElementById('btnCloseDeleteAdminModal');
+      if (btnCloseDeleteAdminModal) btnCloseDeleteAdminModal.addEventListener('click', closeDeleteAdminModal);
+
+      const btnCancelDeleteAdmin = document.getElementById('btnCancelDeleteAdmin');
+      if (btnCancelDeleteAdmin) btnCancelDeleteAdmin.addEventListener('click', closeDeleteAdminModal);
+
+      const btnConfirmDeleteAdmin = document.getElementById('btnConfirmDeleteAdmin');
+      if (btnConfirmDeleteAdmin) btnConfirmDeleteAdmin.addEventListener('click', handleConfirmDeleteAdmin);
+
+      const deleteAdminModalBackdrop = document.getElementById('deleteAdminModalBackdrop');
+      if (deleteAdminModalBackdrop) {
+        deleteAdminModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === deleteAdminModalBackdrop) closeDeleteAdminModal();
+        });
+      }
+    }
+
+    // 2.1 Configuração de Envio e Prévia de Imagem
+    function setupImagePicker() {
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const prodImageUrl = document.getElementById('prodImageUrl');
+      const imagePreview = document.getElementById('imagePreview');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      const btnRemoveImage = document.getElementById('btnRemoveImage');
+
+      if (!dropZone || !fileInput) return;
+
+      // Clique na dropzone abre o seletor de arquivos
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      // Drag & Drop
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-active');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt ? dt.files : null;
+        if (files && files.length > 0) {
+          handleSelectedImageFile(files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+          handleSelectedImageFile(fileInput.files[0]);
+        }
+      });
+
+      // Digitação manual de URL
+      if (prodImageUrl) {
+        prodImageUrl.addEventListener('input', () => {
+          const val = prodImageUrl.value.trim();
+          if (val) {
+            if (imagePreview) imagePreview.src = val;
+            if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+          } else {
+            if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+          }
+        });
+      }
+
+      // Remover imagem
+      if (btnRemoveImage) {
+        btnRemoveImage.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (prodImageUrl) prodImageUrl.value = '';
+          if (fileInput) fileInput.value = '';
+          if (imagePreview) imagePreview.src = '';
+          if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+        });
+      }
+    }
+
+    function handleSelectedImageFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('Por favor, selecione um arquivo de imagem válido (PNG, JPG ou WEBP).', 'warning');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const prodImageUrl = document.getElementById('prodImageUrl');
+        const imagePreview = document.getElementById('imagePreview');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+        if (prodImageUrl) prodImageUrl.value = dataUrl;
+        if (imagePreview) imagePreview.src = dataUrl;
+        if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+        showToast('Foto selecionada com sucesso!', 'info');
+      };
+      reader.onerror = () => {
+        showToast('Erro ao ler a imagem selecionada.', 'error');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 3. Login Exclusivo com Conta Google (Firebase Auth)
+    async function handleGoogleLogin() {
+      if (!fbAuth) {
+        showToast('Firebase ainda inicializando. Aguarde um instante...', 'info');
+        return;
+      }
+      const btnGoogle = document.getElementById('btnGoogleLogin');
+      const originalHtml = btnGoogle ? btnGoogle.innerHTML : '';
+      if (btnGoogle) {
+        btnGoogle.disabled = true;
+        btnGoogle.innerHTML = '<span>Autenticando com Conta Google...</span>';
+      }
+      if (loginAlert) loginAlert.classList.add('hidden');
+
+      try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(fbAuth, provider);
+        const user = result.user;
+
+        const res = await fetch('/api/admin/firebase-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            uid: user.uid,
+            displayName: user.displayName,
+            emailVerified: user.emailVerified
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          authToken = data.token;
+          currentAdminUser = data.user.username;
+          localStorage.setItem('jany_admin_token', authToken);
+          localStorage.setItem('jany_admin_user', currentAdminUser);
+
+          showDashboardView();
+          showToast(`Bem-vindo, ${user.displayName || user.email}! Acesso autorizado.`, 'success');
+          await loadProducts();
+          await loadAdmins();
+          await autoSeedFirestoreIfEmpty();
+        } else {
+          if (loginAlertText) loginAlertText.textContent = data.error || 'Acesso negado: este e-mail Google não está autorizado.';
+          if (loginAlert) loginAlert.classList.remove('hidden');
+          await fbSignOut(fbAuth);
+        }
+      } catch (err) {
+        console.error('Erro no login Google:', err);
+        if (loginAlertText) {
+          if (err.code === 'auth/popup-closed-by-user') {
+            loginAlertText.textContent = 'Janela de login fechada antes da conclusão.';
+          } else if (err.code === 'auth/cancelled-popup-request') {
+            loginAlertText.textContent = 'Solicitação de login cancelada.';
+          } else {
+            loginAlertText.textContent = err.message || 'Falha ao autenticar com o Google.';
+          }
+        }
+        if (loginAlert) loginAlert.classList.remove('hidden');
+      } finally {
+        if (btnGoogle) {
+          btnGoogle.disabled = false;
+          btnGoogle.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    // 3.2 Auto-seed inicial do Firestore caso vazio
+    async function autoSeedFirestoreIfEmpty() {
+      if (!fbDb || !fbAuth?.currentUser) return;
+      try {
+        const snap = await getDocs(collection(fbDb, 'products'));
+        if (snap.empty && allProducts.length > 0) {
+          console.log('Alimentando coleção Firestore com produtos do catálogo...');
+          for (const p of allProducts) {
+            await setDoc(doc(fbDb, 'products', p.id), {
+              ...p,
+              createdAt: p.createdAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+          }
+          showToast('🔥 Catálogo sincronizado com o banco Firebase Firestore!', 'success');
+        }
+      } catch (err) {
+        console.warn('Auto-seed Firestore:', err.message);
+      }
+    }
+
+    // 3.3 Sincronização manual do catálogo com Firebase Firestore
+    async function handleSyncWithFirebase() {
+      if (!fbDb) {
+        showToast('Banco Firebase Firestore não inicializado.', 'error');
+        return;
+      }
+      if (!fbAuth?.currentUser) {
+        showToast('💡 Conecte-se com sua conta Google (mackson.weiber13@gmail.com) para sincronizar com o Firebase Firestore.', 'warning');
+        return;
+      }
+
+      const btnSync = document.getElementById('btnSyncFirebase');
+      const originalHtml = btnSync ? btnSync.innerHTML : '';
+      if (btnSync) {
+        btnSync.disabled = true;
+        btnSync.innerHTML = '<span>🔥 Sincronizando...</span>';
+      }
+
+      let count = 0;
+      try {
+        for (const p of allProducts) {
+          await setDoc(doc(fbDb, 'products', p.id), {
+            ...p,
+            createdAt: p.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          count++;
+        }
+        showToast(`🔥 ${count} produtos sincronizados com sucesso no Firebase Firestore!`, 'success');
+      } catch (err) {
+        console.error('Erro ao sincronizar com Firestore:', err);
+        showToast('Erro ao sincronizar com o Firestore: ' + err.message, 'error');
+      } finally {
+        if (btnSync) {
+          btnSync.disabled = false;
+          btnSync.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    // 4. Carregar Produtos
+    async function loadProducts() {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          allProducts = await res.json();
+          renderProducts();
+          updateStats();
+        }
+      } catch (err) {
+        console.error('Erro ao buscar produtos:', err);
+        showToast('Erro ao carregar produtos do servidor.', 'error');
+      }
+    }
+
+    // 5. Renderizar Grade de Produtos
+    function renderProducts() {
+      if (!productsGrid) return;
+      const searchEl = document.getElementById('searchInput');
+      const filterTagEl = document.getElementById('filterTagSelect');
+      const sortSelectEl = document.getElementById('sortSelect');
+
+      const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+      const filterTag = filterTagEl ? filterTagEl.value : 'all';
+      const sortBy = sortSelectEl ? sortSelectEl.value : 'default';
+
+      let list = [...allProducts];
+
+      // Filtro de busca
+      if (search) {
+        list = list.filter(p => 
+          (p.title && p.title.toLowerCase().includes(search)) ||
+          (p.description && p.description.toLowerCase().includes(search)) ||
+          (p.tag && p.tag.toLowerCase().includes(search))
+        );
+      }
+
+      // Filtro de tag
+      if (filterTag === 'mais_vendido') {
+        list = list.filter(p => p.tag && p.tag.toLowerCase().includes('vendido'));
+      } else if (filterTag === 'sem_tag') {
+        list = list.filter(p => !p.tag || p.tag.trim() === '');
+      }
+
+      // Ordenação
+      if (sortBy === 'az') {
+        list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (sortBy === 'za') {
+        list.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+      }
+
+      if (list.length === 0) {
+        productsGrid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3>Nenhum produto encontrado</h3>
+            <p>Não encontramos produtos com os filtros selecionados. Tente buscar por outro termo ou adicione um novo produto.</p>
+            <button type="button" class="btn-primary-action" onclick="window.openNewProductModal()">+ Cadastrar Novo Produto</button>
+          </div>
+        `;
+        return;
+      }
+
+      productsGrid.innerHTML = list.map(p => {
+        const safeTitle = escapeHtml(p.title || 'Produto sem título');
+        const safeDesc = escapeHtml(p.description || '');
+        const safePrice = escapeHtml(p.price || 'Consultar');
+        const safeTag = p.tag ? `<span class="badge-tag">${escapeHtml(p.tag)}</span>` : '';
+        const safeRating = p.rating || '★★★★★ <span>Seleção 5 estrelas</span>';
+        const imgUrl = p.image || '/logo.png';
+        const waLink = p.whatsapp || '#';
+        const buyLink = p.buyLink || '#';
+
+        return `
+          <div class="product-card" data-id="${escapeHtml(p.id)}">
+            <div class="product-card-img-wrap">
+              <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(p.alt || safeTitle)}" loading="lazy" onerror="this.src='/logo.png'">
+              <span class="product-card-id">${escapeHtml(p.id)}</span>
+            </div>
+            <div class="product-card-body">
+              <div class="product-card-header">
+                <div>
+                  <h3 class="product-card-title">${safeTitle}</h3>
+                  <div class="product-card-rating">${safeRating}</div>
+                </div>
+                ${safeTag}
+              </div>
+              <p class="product-card-desc">${safeDesc}</p>
+              <div class="product-card-price">${safePrice}</div>
+              
+              <div class="product-links-preview">
+                <a href="${escapeHtml(waLink)}" target="_blank" class="link-preview-item" title="Ver link do WhatsApp">
+                  💬 WhatsApp direto
+                </a>
+                <a href="${escapeHtml(buyLink)}" target="_blank" class="link-preview-item" title="Ver link de compra / checkout">
+                  🛍️ Link de Compra
+                </a>
+              </div>
+
+              <div class="product-actions">
+                <button type="button" class="btn-action-edit" onclick="window.editProduct('${escapeHtml(p.id)}')">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Editar
+                </button>
+                <button type="button" class="btn-action-duplicate" onclick="window.duplicateProduct('${escapeHtml(p.id)}')">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                  Duplicar
+                </button>
+                <button type="button" class="btn-action-delete" title="Excluir Produto" onclick="window.confirmDeleteProduct('${escapeHtml(p.id)}')">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 6. Atualizar Estatísticas
+    function updateStats() {
+      const statTotal = document.getElementById('statTotal');
+      const statFeatured = document.getElementById('statFeatured');
+      const statWithWhatsapp = document.getElementById('statWithWhatsapp');
+      const tabBadgeProducts = document.getElementById('tabBadgeProducts');
+      if (tabBadgeProducts) tabBadgeProducts.textContent = allProducts.length;
+      if (statTotal) statTotal.textContent = allProducts.length;
+      if (statFeatured) {
+        const featured = allProducts.filter(p => p.tag && p.tag.trim() !== '').length;
+        statFeatured.textContent = featured;
+      }
+      if (statWithWhatsapp) {
+        const wa = allProducts.filter(p => p.whatsapp && p.whatsapp.trim() !== '').length;
+        statWithWhatsapp.textContent = wa;
+      }
+    }
+
+    // 7. Modal Produto (Abrir/Fechar)
+    function openProductModal(prod = null) {
+      const editProductId = document.getElementById('editProductId');
+      const modalProductTitle = document.getElementById('modalProductTitle');
+      const prodTitle = document.getElementById('prodTitle');
+      const prodTag = document.getElementById('prodTag');
+      const prodPrice = document.getElementById('prodPrice');
+      const prodRating = document.getElementById('prodRating');
+      const prodDescription = document.getElementById('prodDescription');
+      const prodImageUrl = document.getElementById('prodImageUrl');
+      const prodWhatsapp = document.getElementById('prodWhatsapp');
+      const prodBuyLink = document.getElementById('prodBuyLink');
+      const fileInput = document.getElementById('fileInput');
+
+      if (editProductId) editProductId.value = prod ? prod.id : '';
+      if (modalProductTitle) modalProductTitle.textContent = prod ? (prod.id ? 'Editar Produto' : 'Cadastrar Cópia de Produto') : 'Adicionar Novo Produto';
+
+      if (prodTitle) prodTitle.value = prod ? prod.title : '';
+      if (prodTag) prodTag.value = prod ? (prod.tag || '') : '';
+      if (prodPrice) prodPrice.value = prod ? prod.price : 'Consultar';
+      if (prodRating) prodRating.value = prod ? (prod.rating || '★★★★★ <span>Seleção 5 estrelas da Jany</span>') : '★★★★★ <span>Seleção 5 estrelas da Jany</span>';
+      if (prodDescription) prodDescription.value = prod ? (prod.description || '') : '';
+      if (prodImageUrl) prodImageUrl.value = prod ? (prod.image || '') : '';
+      if (prodWhatsapp) prodWhatsapp.value = prod ? (prod.whatsapp || '') : '';
+      if (prodBuyLink) prodBuyLink.value = prod ? (prod.buyLink || '#checkout') : '#checkout';
+      if (fileInput) fileInput.value = '';
+
+      const imagePreview = document.getElementById('imagePreview');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+      if (prod && prod.image) {
+        if (imagePreview) imagePreview.src = prod.image;
+        if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+      } else {
+        if (imagePreview) imagePreview.src = '';
+        if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+      }
+
+      const backdrop = document.getElementById('productModalBackdrop');
+      if (backdrop) backdrop.classList.add('active');
+      if (prodTitle) setTimeout(() => prodTitle.focus(), 50);
+    }
+
+    function closeProductModal() {
+      const backdrop = document.getElementById('productModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+      const form = document.getElementById('productForm');
+      if (form) form.reset();
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      if (imagePreviewContainer) imagePreviewContainer.classList.add('hidden');
+      const imagePreview = document.getElementById('imagePreview');
+      if (imagePreview) imagePreview.src = '';
+    }
+
+    // 8. Salvar Produto (Criar / Editar) com suporte dual (API e Firestore)
+    async function handleSaveProduct(e) {
+      e.preventDefault();
+      const id = (document.getElementById('editProductId')?.value || '').trim();
+      const title = (document.getElementById('prodTitle')?.value || '').trim();
+      const tag = (document.getElementById('prodTag')?.value || '').trim();
+      const price = (document.getElementById('prodPrice')?.value || '').trim() || 'Consultar';
+      const rating = document.getElementById('prodRating')?.value || '★★★★★ <span>Seleção 5 estrelas da Jany</span>';
+      const description = (document.getElementById('prodDescription')?.value || '').trim();
+      const image = (document.getElementById('prodImageUrl')?.value || '').trim();
+      let whatsapp = (document.getElementById('prodWhatsapp')?.value || '').trim();
+      const buyLink = (document.getElementById('prodBuyLink')?.value || '').trim() || '#checkout';
+
+      if (!title) {
+        showToast('O nome do produto é obrigatório.', 'error');
+        return;
+      }
+
+      if (!whatsapp) {
+        const msg = encodeURIComponent(`Olá! Tenho uma dúvida sobre o produto ${title} da JANY BEAUTY.\nOrigem: site JANY BEAUTY`);
+        whatsapp = `https://wa.me/5584987408061?text=${msg}`;
+      }
+
+      const payload = {
+        title,
+        tag,
+        price,
+        rating,
+        description,
+        image,
+        whatsapp,
+        buyLink
+      };
+
+      const btnSave = document.getElementById('btnSaveProduct');
+      if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.textContent = 'Salvando...';
+      }
+
+      try {
+        let res;
+        if (id) {
+          // Atualizar via API
+          res = await fetch(`/api/products/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + authToken
+            },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // Criar via API
+          res = await fetch('/api/products', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + authToken
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          // Salvar também diretamente no Firestore se usuário estiver autenticado no Firebase
+          if (fbDb && fbAuth?.currentUser) {
+            try {
+              const savedId = data.product?.id || id;
+              const prodDocData = {
+                id: savedId,
+                ...payload,
+                updatedAt: new Date().toISOString(),
+                createdAt: data.product?.createdAt || new Date().toISOString()
+              };
+              await setDoc(doc(fbDb, 'products', savedId), prodDocData, { merge: true });
+              console.log('🔥 Produto sincronizado no Firestore');
+            } catch (fsErr) {
+              console.warn('Erro ao salvar no Firestore:', fsErr.message);
+            }
+          }
+
+          showToast(id ? '⚡ Produto atualizado e sincronizado em tempo real!' : '⚡ Novo produto cadastrado e sincronizado em tempo real!', 'success');
+          closeProductModal();
+          await loadProducts();
+        } else {
+          showToast(data.error || 'Erro ao salvar produto.', 'error');
+        }
+      } catch (err) {
+        console.error('Erro ao salvar produto:', err);
+        showToast('Falha na comunicação com o servidor.', 'error');
+      } finally {
+        if (btnSave) {
+          btnSave.disabled = false;
+          btnSave.textContent = 'Salvar Produto';
+        }
+      }
+    }
+
+    // 10. Editar Produto
+    function editProduct(id) {
+      const prod = allProducts.find(p => p.id === id);
+      if (prod) {
+        openProductModal(prod);
+      } else {
+        showToast('Produto não encontrado no catálogo.', 'error');
+      }
+    }
+
+    // 11. Duplicar Produto
+    function duplicateProduct(id) {
+      const prod = allProducts.find(p => p.id === id);
+      if (prod) {
+        const copy = {
+          ...prod,
+          id: '',
+          title: prod.title + ' (Cópia)'
+        };
+        openProductModal(copy);
+        showToast('Cópia gerada! Faça os ajustes e salve o produto.', 'info');
+      }
+    }
+
+    // 12. Exclusão de Produto
+    function confirmDeleteProduct(id) {
+      const prod = allProducts.find(p => p.id === id);
+      if (!prod) return;
+
+      activeDeleteId = id;
+      const deleteProductTitle = document.getElementById('deleteProductTitle');
+      if (deleteProductTitle) deleteProductTitle.textContent = `"${prod.title}"`;
+      const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+      if (deleteModalBackdrop) deleteModalBackdrop.classList.add('active');
+    }
+
+    function closeDeleteModal() {
+      const deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+      if (deleteModalBackdrop) deleteModalBackdrop.classList.remove('active');
+      activeDeleteId = null;
+    }
+
+    async function handleConfirmDelete() {
+      if (!activeDeleteId) return;
+
+      const btn = document.getElementById('btnConfirmDelete');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Excluindo...';
+      }
+
+      try {
+        const res = await fetch(`/api/products/${activeDeleteId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (fbDb && fbAuth?.currentUser) {
+            try {
+              await deleteDoc(doc(fbDb, 'products', activeDeleteId));
+              console.log('🔥 Produto removido do Firestore');
+            } catch (fsErr) {
+              console.warn('Erro ao deletar no Firestore:', fsErr.message);
+            }
+          }
+
+          showToast('⚡ Produto excluído e sincronizado em tempo real!', 'success');
+          closeDeleteModal();
+          await loadProducts();
+        } else {
+          showToast(data.error || 'Erro ao excluir produto.', 'error');
+        }
+      } catch (err) {
+        console.error('Falha ao excluir:', err);
+        showToast('Falha na comunicação com o servidor.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Excluir Produto';
+        }
+      }
+    }
+
+    // 13. Restaurar Catálogo Padrão
+    async function handleResetDefaults() {
+      const btnReset = document.getElementById('btnResetDefaults');
+      if (btnReset) {
+        btnReset.disabled = true;
+        btnReset.textContent = 'Restaurando...';
+      }
+
+      try {
+        const res = await fetch('/api/products/reset', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Catálogo restaurado para os 10 produtos originais!', 'success');
+          await loadProducts();
+          if (fbDb && fbAuth?.currentUser) {
+            handleSyncWithFirebase();
+          }
+        } else {
+          showToast(data.error || 'Falha ao restaurar catálogo.', 'error');
+        }
+      } catch (err) {
+        console.error('Erro no reset:', err);
+        showToast('Erro ao comunicar com o servidor.', 'error');
+      } finally {
+        if (btnReset) {
+          btnReset.disabled = false;
+          btnReset.textContent = 'Restaurar Catálogo Padrão';
+        }
+      }
+    }
+
+    // 15. Sistema de Notificações Toast
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      let icon = 'ℹ️';
+      if (type === 'success') icon = '✓';
+      if (type === 'error') icon = '✕';
+      if (type === 'warning') icon = '⚠️';
+
+      toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <div class="toast-content">${escapeHtml(msg)}</div>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 250);
+      }, 4000);
+    }
+
+    // Tags rápidas
+    function setProductTag(tag) {
+      const prodTag = document.getElementById('prodTag');
+      if (prodTag) prodTag.value = tag;
+    }
+
+    // Utilitário de escape de HTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 16. Gerenciamento de Abas (Produtos / Administradores)
+    function switchTab(tabName) {
+      currentTab = tabName;
+      const tabBtnProducts = document.getElementById('tabBtnProducts');
+      const tabBtnAdmins = document.getElementById('tabBtnAdmins');
+      const tabPaneProducts = document.getElementById('tabPaneProducts');
+      const tabPaneAdmins = document.getElementById('tabPaneAdmins');
+
+      if (tabName === 'admins') {
+        if (tabBtnProducts) tabBtnProducts.classList.remove('active');
+        if (tabBtnAdmins) tabBtnAdmins.classList.add('active');
+        if (tabPaneProducts) tabPaneProducts.classList.add('hidden');
+        if (tabPaneAdmins) tabPaneAdmins.classList.remove('hidden');
+        loadAdmins();
+      } else {
+        if (tabBtnAdmins) tabBtnAdmins.classList.remove('active');
+        if (tabBtnProducts) tabBtnProducts.classList.add('active');
+        if (tabPaneAdmins) tabPaneAdmins.classList.add('hidden');
+        if (tabPaneProducts) tabPaneProducts.classList.remove('hidden');
+      }
+    }
+
+    // 17. Carregar Administradores
+    async function loadAdmins() {
+      if (!authToken) return;
+      try {
+        const res = await fetch('/api/admin/admins', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          allAdmins = data.admins || [];
+          renderAdmins();
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar administradores:', err);
+      }
+    }
+
+    // 18. Renderizar Tabela de Administradores
+    function renderAdmins() {
+      const tbody = document.getElementById('adminsTableBody');
+      const statTotalAdmins = document.getElementById('statTotalAdmins');
+      const tabBadgeAdmins = document.getElementById('tabBadgeAdmins');
+      const statOwnerEmail = document.getElementById('statOwnerEmail');
+
+      if (tabBadgeAdmins) tabBadgeAdmins.textContent = allAdmins.length;
+      if (statTotalAdmins) {
+        const activeCount = allAdmins.filter(a => a.status === 'active').length;
+        statTotalAdmins.textContent = `${activeCount} ativo${activeCount !== 1 ? 's' : ''}`;
+      }
+
+      const owner = allAdmins.find(a => a.isOwner);
+      if (owner && statOwnerEmail) {
+        statOwnerEmail.textContent = owner.email;
+      }
+
+      if (!tbody) return;
+
+      if (allAdmins.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 32px; color: var(--ink-muted);">
+              Nenhum administrador cadastrado.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = allAdmins.map(admin => {
+        const isOwner = !!admin.isOwner;
+        const initial = (admin.name ? admin.name.charAt(0) : admin.email.charAt(0)).toUpperCase();
+        const roleBadge = isOwner
+          ? `<span class="badge-role-owner">👑 Proprietário</span>`
+          : (admin.role === 'admin'
+              ? `<span class="badge-role-admin">🛡️ Administrador</span>`
+              : `<span class="badge-role-editor">✏️ Editor</span>`);
+
+        const statusBadge = admin.status === 'active'
+          ? `<span class="badge-status-active"><span style="display:inline-block; width:6px; height:6px; background:#10b981; border-radius:50%;"></span> Ativo</span>`
+          : `<span class="badge-status-inactive"><span style="display:inline-block; width:6px; height:6px; background:#9ca3af; border-radius:50%;"></span> Inativo</span>`;
+
+        let formattedDate = 'Padrão do Sistema';
+        if (admin.createdAt) {
+          try {
+            const d = new Date(admin.createdAt);
+            formattedDate = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          } catch(e) {}
+        }
+
+        let actionsHtml = '';
+        if (isOwner) {
+          actionsHtml = `<span style="font-size: 12px; color: #b45309; font-weight: 600;">👑 Conta Principal</span>`;
+        } else {
+          const toggleText = admin.status === 'active' ? 'Desativar' : 'Ativar';
+          const toggleClass = admin.status === 'active' ? 'background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;' : 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;';
+          actionsHtml = `
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-secondary-action" style="padding: 5px 10px; font-size: 12px; ${toggleClass}" onclick="window.toggleAdminStatus('${escapeHtml(admin.id)}')">
+                ${toggleText}
+              </button>
+              <button type="button" class="btn-secondary-action" style="padding: 5px 10px; font-size: 12px; background: #fff; color: #dc2626; border-color: #fca5a5;" onclick="window.confirmDeleteAdmin('${escapeHtml(admin.id)}', '${escapeHtml(admin.email)}')">
+                Revogar
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <tr>
+            <td>
+              <div class="admin-user-cell">
+                <div class="admin-avatar-circle ${isOwner ? 'owner' : ''}">${initial}</div>
+                <div>
+                  <div style="font-weight: 700; color: var(--navy);">${escapeHtml(admin.name || admin.email)}</div>
+                  ${admin.lastLoginAt ? `<div style="font-size: 11px; color: var(--ink-light);">Último login: ${new Date(admin.lastLoginAt).toLocaleDateString('pt-BR')}</div>` : ''}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="font-family: monospace; font-size: 13px; font-weight: 600; color: #1e293b;">${escapeHtml(admin.email)}</span>
+            </td>
+            <td>${roleBadge}</td>
+            <td>${statusBadge}</td>
+            <td style="color: var(--ink-light); font-size: 13px;">${formattedDate}</td>
+            <td style="text-align: right;">${actionsHtml}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 19. Modais de Administrador
+    function openAddAdminModal() {
+      const backdrop = document.getElementById('addAdminModalBackdrop');
+      const form = document.getElementById('addAdminForm');
+      const emailInput = document.getElementById('newAdminEmail');
+      if (form) form.reset();
+      if (backdrop) backdrop.classList.add('active');
+      if (emailInput) setTimeout(() => emailInput.focus(), 50);
+    }
+
+    function closeAddAdminModal() {
+      const backdrop = document.getElementById('addAdminModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+      const form = document.getElementById('addAdminForm');
+      if (form) form.reset();
+    }
+
+    async function handleAddAdmin(e) {
+      e.preventDefault();
+      const email = (document.getElementById('newAdminEmail')?.value || '').trim();
+      const name = (document.getElementById('newAdminName')?.value || '').trim();
+      const role = document.getElementById('newAdminRole')?.value || 'admin';
+      const btnSubmit = document.getElementById('btnSubmitAddAdmin');
+
+      if (!email) {
+        showToast('O e-mail do administrador é obrigatório.', 'error');
+        return;
+      }
+
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Autorizando...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/admins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify({ email, name, role })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          // Também sincronizar direto com Firestore se autenticado no Firebase
+          if (fbDb && fbAuth?.currentUser) {
+            try {
+              await setDoc(doc(fbDb, 'admins', email.toLowerCase()), {
+                email: email.toLowerCase(),
+                name: name || email.split('@')[0],
+                role,
+                status: 'active',
+                isOwner: false,
+                createdAt: new Date().toISOString(),
+                addedBy: currentAdminUser
+              }, { merge: true });
+            } catch (fsErr) {
+              console.warn('Firestore direto:', fsErr.message);
+            }
+          }
+
+          showToast(data.message || 'Administrador autorizado com sucesso!', 'success');
+          closeAddAdminModal();
+          await loadAdmins();
+        } else {
+          showToast(data.error || 'Erro ao autorizar administrador.', 'error');
+        }
+      } catch (err) {
+        showToast('Falha na comunicação com o servidor.', 'error');
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = '+ Autorizar e Liberar Acesso';
+        }
+      }
+    }
+
+    async function toggleAdminStatus(id) {
+      try {
+        const res = await fetch(`/api/admin/admins/${id}/toggle`, {
+          method: 'PATCH',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message, 'success');
+          await loadAdmins();
+        } else {
+          showToast(data.error || 'Erro ao alterar status do administrador.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro ao atualizar status.', 'error');
+      }
+    }
+
+    function confirmDeleteAdmin(id, email) {
+      activeDeleteAdminId = id;
+      activeDeleteAdminEmail = email;
+      const display = document.getElementById('deleteAdminEmailDisplay');
+      if (display) display.textContent = email;
+      const backdrop = document.getElementById('deleteAdminModalBackdrop');
+      if (backdrop) backdrop.classList.add('active');
+    }
+
+    function closeDeleteAdminModal() {
+      activeDeleteAdminId = null;
+      activeDeleteAdminEmail = '';
+      const backdrop = document.getElementById('deleteAdminModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    async function handleConfirmDeleteAdmin() {
+      if (!activeDeleteAdminId) return;
+      const btn = document.getElementById('btnConfirmDeleteAdmin');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Revogando...';
+      }
+
+      try {
+        const res = await fetch(`/api/admin/admins/${activeDeleteAdminId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          // Também remover do Firestore se autenticado no Firebase
+          if (fbDb && fbAuth?.currentUser && activeDeleteAdminEmail) {
+            try {
+              await deleteDoc(doc(fbDb, 'admins', activeDeleteAdminEmail.toLowerCase()));
+            } catch (fsErr) {
+              console.warn('Firestore delete direto:', fsErr.message);
+            }
+          }
+          showToast(data.message || 'Acesso revogado com sucesso.', 'success');
+          closeDeleteAdminModal();
+          await loadAdmins();
+        } else {
+          showToast(data.error || 'Erro ao revogar acesso.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro ao remover administrador.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Revogar Acesso';
+        }
+      }
+    }
+
+    // Expor métodos no window para atributos inline onclick em templates
+    window.openProductModal = openProductModal;
+    window.openNewProductModal = () => openProductModal();
+    window.closeProductModal = closeProductModal;
+    window.editProduct = editProduct;
+    window.duplicateProduct = duplicateProduct;
+    window.confirmDeleteProduct = confirmDeleteProduct;
+    window.closeDeleteModal = closeDeleteModal;
+    window.logoutUser = logoutUser;
+    window.setProductTag = setProductTag;
+    window.showToast = showToast;
+    window.handleGoogleLogin = handleGoogleLogin;
+    window.switchTab = switchTab;
+    window.openAddAdminModal = openAddAdminModal;
+    window.closeAddAdminModal = closeAddAdminModal;
+    window.toggleAdminStatus = toggleAdminStatus;
+    window.confirmDeleteAdmin = confirmDeleteAdmin;
+    window.closeDeleteAdminModal = closeDeleteAdminModal;
+  </script>
+</body>
+</html>

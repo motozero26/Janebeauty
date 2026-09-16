@@ -10,6 +10,11 @@
     "lint": "echo 'No lint errors'"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "firebase": "^12.19.0"
+  },
+  "devDependencies": {
+    "@firebase/eslint-plugin-security-rules": "^0.0.2",
+    "eslint": "^10.10.0"
   }
 }

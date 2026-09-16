@@ -1,6 +1,6 @@
 {
   "name": "JANY BEAUTY",
-  "description": "Perfumes, cosméticos, skincare, autocuidado e presentes com curadoria especial da Jany, atendimento próximo e ofertas para sua próxima escolha.",
+  "description": "Perfumes, cosméticos, skincare, autocuidado e presentes com curadoria especial da Jany, com painel administrativo e persistência na nuvem via Firebase Firestore.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

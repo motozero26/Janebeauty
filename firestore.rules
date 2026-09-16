@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'mackson.weiber13@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() ||
+        (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))) ||
+        (isSignedIn() && request.auth.token.email != null && exists(/databases/$(database)/documents/admins/$(request.auth.token.email)));
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'title', 'price']) &&
+        data.id is string && data.id.size() > 0 && data.id.size() <= 64 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+        data.price is string && data.price.size() > 0 && data.price.size() <= 60 &&
+        (!('tag' in data) || (data.tag is string && data.tag.size() <= 60)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+        (!('rating' in data) || (data.rating is string && data.rating.size() <= 120)) &&
+        (!('image' in data) || (data.image is string && data.image.size() <= 500000)) &&
+        (!('alt' in data) || (data.alt is string && data.alt.size() <= 200)) &&
+        (!('whatsapp' in data) || (data.whatsapp is string && data.whatsapp.size() <= 500)) &&
+        (!('buyLink' in data) || (data.buyLink is string && data.buyLink.size() <= 500)) &&
+        (!('createdAt' in data) || data.createdAt is string) &&
+        (!('updatedAt' in data) || data.updatedAt is string);
+    }
+
+    function isValidAdminId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-.@+]+$');
+    }
+
+    function isValidAdminDoc(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+        data.email is string && data.email.size() <= 120 &&
+        data.role in ['admin', 'superadmin', 'editor'] &&
+        (!('name' in data) || (data.name is string && data.name.size() <= 120)) &&
+        (!('status' in data) || (data.status is string && data.status.size() <= 20)) &&
+        (!('uid' in data) || (data.uid is string && data.uid.size() <= 128)) &&
+        (!('createdAt' in data) || data.createdAt is string) &&
+        (!('isOwner' in data) || data.isOwner is bool) &&
+        (!('addedBy' in data) || (data.addedBy is string && data.addedBy.size() <= 120));
+    }
+
+    // Diagnostic collection for connection verification
+    match /test/{docId} {
+      allow get: if true;
+      allow write: if isAdmin() && isValidId(docId);
+    }
+
+    // Products catalog: public read, admin write
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(productId) && incoming().id == productId && isValidProduct(incoming());
+      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // Admin collection: strictly restricted to verified admins
+    match /admins/{adminId} {
+      allow get: if isAdmin() && isValidAdminId(adminId);
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && isValidAdminId(adminId) && isValidAdminDoc(incoming());
+      allow delete: if isAdmin() && isValidAdminId(adminId);
+    }
+  }
+}

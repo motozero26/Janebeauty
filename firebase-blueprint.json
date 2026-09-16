@@ -1,0 +1,131 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Item de cosmético, maquiagem, skincare ou perfumaria do catálogo JANY BEAUTY.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador único do produto.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "title": {
+          "type": "string",
+          "description": "Nome comercial do produto.",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "tag": {
+          "type": "string",
+          "description": "Selo de destaque (ex: Lançamento, Mais Vendido, etc.).",
+          "maxLength": 60
+        },
+        "description": {
+          "type": "string",
+          "description": "Descrição detalhada dos benefícios e notas do produto.",
+          "maxLength": 1000
+        },
+        "price": {
+          "type": "string",
+          "description": "Preço exibido em reais.",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "rating": {
+          "type": "string",
+          "description": "Classificação e estrelas do produto.",
+          "maxLength": 120
+        },
+        "image": {
+          "type": "string",
+          "description": "Caminho da imagem, URL ou data URI.",
+          "maxLength": 500000
+        },
+        "alt": {
+          "type": "string",
+          "description": "Texto alternativo acessível para a foto.",
+          "maxLength": 200
+        },
+        "whatsapp": {
+          "type": "string",
+          "description": "Link direto para tirar dúvidas no WhatsApp da loja.",
+          "maxLength": 500
+        },
+        "buyLink": {
+          "type": "string",
+          "description": "Link de compra ou checkout.",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e hora de cadastro do produto."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data e hora da última alteração do produto."
+        }
+      },
+      "required": ["id", "title", "price"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Perfil de administrador autorizado a gerenciar os produtos da loja.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "E-mail verificado do administrador.",
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "description": "Nível de acesso administrativo.",
+          "enum": ["admin", "superadmin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de concessão do privilégio."
+        }
+      },
+      "required": ["email", "role"]
+    },
+    "ConnectionTest": {
+      "title": "ConnectionTest",
+      "description": "Documento para verificação da saúde e conectividade do Firestore.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Status da conectividade.",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp do teste de conexão."
+        }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Coleção com os produtos ativos exibidos na vitrine e gerenciados no painel."
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Documentos de administradores cadastrados com permissão de escrita."
+    },
+    "/test/{docId}": {
+      "schema": "ConnectionTest",
+      "description": "Coleção de diagnóstico para checagem de conexão inicial da aplicação."
+    }
+  }
+}
