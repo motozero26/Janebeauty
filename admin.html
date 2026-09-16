@@ -2321,12 +2321,30 @@
           }
           showToast('🔥 Catálogo sincronizado com o banco Firebase Firestore!', 'success');
         }
+
+        // Sincroniza administradores no Firestore para garantir acesso e persistência no Vercel
+        if (allAdmins && allAdmins.length > 0) {
+          for (const adm of allAdmins) {
+            if (adm.email) {
+              await setDoc(doc(fbDb, 'admins', adm.email.toLowerCase()), {
+                email: adm.email.toLowerCase(),
+                name: adm.name || adm.email.split('@')[0],
+                role: adm.role || 'admin',
+                status: adm.status || 'active',
+                isOwner: !!adm.isOwner,
+                createdAt: adm.createdAt || new Date().toISOString(),
+                addedBy: adm.addedBy || 'Administrador',
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+            }
+          }
+        }
       } catch (err) {
         console.warn('Auto-seed Firestore:', err.message);
       }
     }
 
-    // 3.3 Sincronização manual do catálogo com Firebase Firestore
+    // 3.3 Sincronização manual do catálogo e administradores com Firebase Firestore
     async function handleSyncWithFirebase() {
       if (!fbDb) {
         showToast('Banco Firebase Firestore não inicializado.', 'error');
@@ -2345,6 +2363,7 @@
       }
 
       let count = 0;
+      let adminCount = 0;
       try {
         for (const p of allProducts) {
           await setDoc(doc(fbDb, 'products', p.id), {
@@ -2354,7 +2373,27 @@
           });
           count++;
         }
-        showToast(`🔥 ${count} produtos sincronizados com sucesso no Firebase Firestore!`, 'success');
+
+        // Sincronizar todos os administradores cadastrados
+        if (allAdmins && allAdmins.length > 0) {
+          for (const adm of allAdmins) {
+            if (adm.email) {
+              await setDoc(doc(fbDb, 'admins', adm.email.toLowerCase()), {
+                email: adm.email.toLowerCase(),
+                name: adm.name || adm.email.split('@')[0],
+                role: adm.role || 'admin',
+                status: adm.status || 'active',
+                isOwner: !!adm.isOwner,
+                createdAt: adm.createdAt || new Date().toISOString(),
+                addedBy: adm.addedBy || 'Mackson Weiber',
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+              adminCount++;
+            }
+          }
+        }
+
+        showToast(`🔥 ${count} produtos e ${adminCount} administradores sincronizados no Firestore!`, 'success');
       } catch (err) {
         console.error('Erro ao sincronizar com Firestore:', err);
         showToast('Erro ao sincronizar com o Firestore: ' + err.message, 'error');
@@ -3044,6 +3083,16 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
+          if (fbDb && fbAuth?.currentUser && data.admin?.email) {
+            try {
+              await setDoc(doc(fbDb, 'admins', data.admin.email.toLowerCase()), {
+                status: data.admin.status,
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+            } catch (fsErr) {
+              console.warn('Firestore toggle direto:', fsErr.message);
+            }
+          }
           showToast(data.message, 'success');
           await loadAdmins();
         } else {

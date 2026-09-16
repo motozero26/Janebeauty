@@ -4,7 +4,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { db, testConnection, handleFirestoreError, OperationType } from './firebase.js';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,11 +84,66 @@ function saveAuthorizedAdmins(admins) {
   }
 }
 
-function findAdminByEmail(email) {
+async function findAdminByEmail(email) {
   if (!email) return null;
-  const list = getAuthorizedAdmins();
   const normalized = email.trim().toLowerCase();
-  return list.find(a => a.email && a.email.trim().toLowerCase() === normalized) || null;
+
+  // 1. Check if owner
+  if (normalized === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase()) {
+    return {
+      id: 'owner-mackson',
+      email: BOOTSTRAPPED_OWNER_EMAIL,
+      name: 'Mackson Weiber',
+      role: 'superadmin',
+      status: 'active',
+      isOwner: true,
+      createdAt: '2026-09-14T20:00:00.000Z',
+      addedBy: 'Sistema (Proprietário)'
+    };
+  }
+
+  // 2. Check local admins list
+  const list = getAuthorizedAdmins();
+  const local = list.find(a => a.email && a.email.trim().toLowerCase() === normalized);
+  if (local && local.status === 'active') {
+    return local;
+  }
+
+  // 3. Query directly from Firestore collection 'admins'
+  try {
+    const docRef = doc(db, 'admins', normalized);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data && data.status === 'active') {
+        const adminObj = {
+          id: data.id || ('adm-' + crypto.randomBytes(6).toString('hex')),
+          email: normalized,
+          name: data.name || normalized.split('@')[0],
+          role: data.role || 'admin',
+          status: 'active',
+          isOwner: !!data.isOwner,
+          createdAt: data.createdAt || new Date().toISOString(),
+          addedBy: data.addedBy || 'Firestore',
+          lastLoginAt: data.lastLoginAt || undefined,
+          firebaseUid: data.firebaseUid || data.uid || undefined
+        };
+        // Update or cache into local list
+        const existingIdx = list.findIndex(a => a.email && a.email.toLowerCase() === normalized);
+        if (existingIdx >= 0) {
+          list[existingIdx] = { ...list[existingIdx], ...adminObj };
+        } else {
+          list.push(adminObj);
+        }
+        saveAuthorizedAdmins(list);
+        return adminObj;
+      }
+    }
+  } catch (fsErr) {
+    console.warn('Verificação de admin no Firestore:', fsErr ? fsErr.message : '');
+  }
+
+  return local || null;
 }
 
 function getAdminCredentials() {
@@ -269,7 +324,7 @@ app.post('/api/admin/firebase-login', async (req, res) => {
 
   const normalizedEmail = email.trim().toLowerCase();
   const isOwner = normalizedEmail === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase();
-  const existingAdmin = findAdminByEmail(normalizedEmail);
+  const existingAdmin = await findAdminByEmail(normalizedEmail);
 
   if (!isOwner && (!existingAdmin || existingAdmin.status !== 'active')) {
     return res.status(403).json({
@@ -280,7 +335,12 @@ app.post('/api/admin/firebase-login', async (req, res) => {
 
   // Update last login and uid if available
   const admins = getAuthorizedAdmins();
-  const adminIdx = admins.findIndex(a => a.email && a.email.toLowerCase() === normalizedEmail);
+  let adminIdx = admins.findIndex(a => a.email && a.email.toLowerCase() === normalizedEmail);
+  if (adminIdx === -1 && existingAdmin) {
+    admins.push(existingAdmin);
+    adminIdx = admins.length - 1;
+  }
+
   if (adminIdx >= 0) {
     admins[adminIdx].lastLoginAt = new Date().toISOString();
     if (uid) admins[adminIdx].firebaseUid = uid;
@@ -420,8 +480,41 @@ app.post('/api/admin/change-credentials', requireAuth, (req, res) => {
 // ================= ADMINS MANAGEMENT API ================= //
 
 // List all authorized administrators
-app.get('/api/admin/admins', requireAuth, (req, res) => {
-  const admins = getAuthorizedAdmins();
+app.get('/api/admin/admins', requireAuth, async (req, res) => {
+  let admins = getAuthorizedAdmins();
+  try {
+    const snap = await getDocs(collection(db, 'admins'));
+    if (!snap.empty) {
+      const mergedMap = new Map();
+      admins.forEach(a => {
+        if (a.email) mergedMap.set(a.email.toLowerCase(), a);
+      });
+      snap.forEach(docSnap => {
+        const item = docSnap.data();
+        if (item && item.email) {
+          const emailLower = item.email.toLowerCase();
+          const existing = mergedMap.get(emailLower) || {};
+          mergedMap.set(emailLower, {
+            id: item.id || existing.id || ('adm-' + crypto.randomBytes(6).toString('hex')),
+            email: emailLower,
+            name: item.name || existing.name || emailLower.split('@')[0],
+            role: item.role || existing.role || 'admin',
+            status: item.status || existing.status || 'active',
+            isOwner: emailLower === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase() || !!item.isOwner,
+            createdAt: item.createdAt || existing.createdAt || new Date().toISOString(),
+            addedBy: item.addedBy || existing.addedBy || 'Sistema',
+            lastLoginAt: item.lastLoginAt || existing.lastLoginAt || undefined,
+            firebaseUid: item.firebaseUid || item.uid || existing.firebaseUid || undefined
+          });
+        }
+      });
+      admins = Array.from(mergedMap.values());
+      saveAuthorizedAdmins(admins);
+    }
+  } catch (err) {
+    console.warn('Sync admins from Firestore:', err ? err.message : '');
+  }
+
   return res.json({
     success: true,
     admins,
@@ -452,8 +545,9 @@ app.post('/api/admin/admins', requireAuth, async (req, res) => {
   const assignedRole = validRoles.includes(role) ? role : 'admin';
   const admins = getAuthorizedAdmins();
 
-  const existing = admins.find(a => a.email && a.email.toLowerCase() === normalizedEmail);
-  if (existing) {
+  const existingInFile = admins.find(a => a.email && a.email.toLowerCase() === normalizedEmail);
+  const existingInFs = await findAdminByEmail(normalizedEmail);
+  if (existingInFile || existingInFs) {
     return res.status(400).json({
       success: false,
       error: `O e-mail ${normalizedEmail} já está cadastrado na lista de administradores.`
