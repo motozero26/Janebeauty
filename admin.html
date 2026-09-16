@@ -2287,6 +2287,11 @@
             loginAlertText.textContent = 'Janela de login fechada antes da conclusão.';
           } else if (err.code === 'auth/cancelled-popup-request') {
             loginAlertText.textContent = 'Solicitação de login cancelada.';
+          } else if (err.code === 'auth/unauthorized-domain') {
+            const host = window.location.hostname;
+            loginAlertText.innerHTML = `<strong>Domínio não autorizado no Firebase Auth!</strong><br>` +
+              `O domínio <code>${host}</code> precisa ser adicionado aos <em>Domínios Autorizados</em> no Firebase Console.<br>` +
+              `<a href="https://console.firebase.google.com/project/gen-lang-client-0932299286/authentication/settings" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-weight:bold;color:#be185d;text-decoration:underline;">Abrir Configurações do Firebase Console →</a>`;
           } else {
             loginAlertText.textContent = err.message || 'Falha ao autenticar com o Google.';
           }
