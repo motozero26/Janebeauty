@@ -1,0 +1,22 @@
+{
+  "cfcbd046f564af3f4303b4d3a9589a4e4b9240b1fe724103fd386aa7dc72e733": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790213448818
+  },
+  "adm_a45fe12fc3c7625209fbf9149b3ad57750adc1a97f556eb4": {
+    "username": "mackson.weiber13",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "createdAt": 1789608648923,
+    "expiresAt": 1790213448923
+  },
+  "adm_01431a007ded8831d0830e218c53c68b895591395ce1191a": {
+    "username": "mackson.weiber13",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "createdAt": 1789608648971,
+    "expiresAt": 1790213448971
+  }
+}

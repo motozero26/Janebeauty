@@ -1840,32 +1840,30 @@
             }
             if (btnConnect) btnConnect.classList.add('hidden');
 
-            // Se o usuário está autenticado no Google mas ainda não possui token no painel
-            if (!authToken) {
-              try {
-                const res = await fetch('/api/admin/firebase-login', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    email: user.email,
-                    uid: user.uid,
-                    displayName: user.displayName,
-                    emailVerified: user.emailVerified
-                  })
-                });
-                const data = await res.json();
-                if (res.ok && data.success) {
-                  authToken = data.token;
-                  currentAdminUser = data.user.username;
-                  localStorage.setItem('jany_admin_token', authToken);
-                  localStorage.setItem('jany_admin_user', currentAdminUser);
-                  showDashboardView();
-                  loadProducts();
-                  loadAdmins();
-                }
-              } catch (authSyncErr) {
-                console.warn('Sincronização de sessão Google:', authSyncErr);
+            // Sempre renovar ou sincronizar a sessão do administrador autenticado no Google com o servidor
+            try {
+              const res = await fetch('/api/admin/firebase-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: user.email,
+                  uid: user.uid,
+                  displayName: user.displayName,
+                  emailVerified: user.emailVerified
+                })
+              });
+              const data = await res.json();
+              if (res.ok && data.success) {
+                authToken = data.token;
+                currentAdminUser = data.user.username;
+                localStorage.setItem('jany_admin_token', authToken);
+                localStorage.setItem('jany_admin_user', currentAdminUser);
+                showDashboardView();
+                loadProducts();
+                loadAdmins();
               }
+            } catch (authSyncErr) {
+              console.warn('Sincronização de sessão Google:', authSyncErr);
             }
           } else {
             if (firebasePillText) {
@@ -1889,9 +1887,11 @@
             snap.forEach(d => fsProducts.push(d.data()));
             fsProducts.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-            // Evita redesenhar enquanto o usuário está digitando no modal de produto
+            // Evita redesenhar enquanto o usuário está digitando no modal de produto ou exclusão
             const modalBackdrop = document.getElementById('productModalBackdrop');
-            const isModalOpen = modalBackdrop && modalBackdrop.classList.contains('active');
+            const deleteBackdrop = document.getElementById('deleteModalBackdrop');
+            const isModalOpen = (modalBackdrop && modalBackdrop.classList.contains('active')) ||
+                                (deleteBackdrop && deleteBackdrop.classList.contains('active'));
 
             allProducts = fsProducts;
             if (!isModalOpen) {
@@ -1899,6 +1899,18 @@
               updateStats();
             }
             console.log('⚡ Catálogo sincronizado em tempo real com o Firestore:', fsProducts.length, 'produtos');
+
+            // Manter servidor em sincronia
+            if (authToken) {
+              fetch('/api/products/sync', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + authToken
+                },
+                body: JSON.stringify({ products: fsProducts })
+              }).catch(() => {});
+            }
           }
         }, (err) => {
           console.warn('Listener Firestore tempo real:', err.message);
@@ -1928,7 +1940,17 @@
           loadProducts();
           loadAdmins();
         } else {
-          logoutUser(false);
+          // Se o Firebase Auth tiver sessão ativa, aguardar a restauração automática do token
+          if (fbAuth && fbAuth.currentUser) {
+            console.log('Aguardando restauração de sessão via Firebase Auth...');
+          } else {
+            // Dar um tempo para o Firebase Auth restaurar antes de forçar logout
+            setTimeout(() => {
+              if (!fbAuth || !fbAuth.currentUser) {
+                logoutUser(false);
+              }
+            }, 1500);
+          }
         }
       } catch (err) {
         console.error('Erro na verificação de sessão:', err);
@@ -2217,18 +2239,47 @@
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        const prodImageUrl = document.getElementById('prodImageUrl');
-        const imagePreview = document.getElementById('imagePreview');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const rawDataUrl = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          // Redimensionar e comprimir imagem para manter o documento leve e compatível com Firestore
+          const maxDim = 800;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
 
-        if (prodImageUrl) prodImageUrl.value = dataUrl;
-        if (imagePreview) imagePreview.src = dataUrl;
-        if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
-        showToast('Foto selecionada com sucesso!', 'info');
+          // Comprimir como JPEG com qualidade 0.85
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+          const prodImageUrl = document.getElementById('prodImageUrl');
+          const imagePreview = document.getElementById('imagePreview');
+          const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+          if (prodImageUrl) prodImageUrl.value = compressedDataUrl;
+          if (imagePreview) imagePreview.src = compressedDataUrl;
+          if (imagePreviewContainer) imagePreviewContainer.classList.remove('hidden');
+          showToast('Foto otimizada e carregada com sucesso!', 'info');
+        };
+        img.onerror = () => {
+          showToast('Erro ao processar a imagem selecionada.', 'error');
+        };
+        img.src = rawDataUrl;
       };
       reader.onerror = () => {
-        showToast('Erro ao ler a imagem selecionada.', 'error');
+        showToast('Erro ao ler o arquivo de imagem.', 'error');
       };
       reader.readAsDataURL(file);
     }
@@ -2624,15 +2675,22 @@
         whatsapp = `https://wa.me/5584987408061?text=${msg}`;
       }
 
+      const targetId = id || ('prod_' + Date.now());
+      const existingProd = allProducts.find(p => p.id === targetId);
+
       const payload = {
+        id: targetId,
         title,
         tag,
         price,
         rating,
         description,
         image,
+        alt: `Foto de ${title} — JANY BEAUTY`,
         whatsapp,
-        buyLink
+        buyLink,
+        createdAt: (existingProd ? existingProd.createdAt : null) || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       const btnSave = document.getElementById('btnSaveProduct');
@@ -2641,63 +2699,73 @@
         btnSave.textContent = 'Salvando...';
       }
 
-      try {
-        let res;
-        if (id) {
-          // Atualizar via API
-          res = await fetch(`/api/products/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + authToken
-            },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          // Criar via API
-          res = await fetch('/api/products', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + authToken
-            },
-            body: JSON.stringify(payload)
-          });
+      let firestoreOk = false;
+      let serverOk = false;
+
+      // 1. Salvar no Firestore se conectado ao Firebase
+      if (fbDb && fbAuth?.currentUser) {
+        try {
+          await setDoc(doc(fbDb, 'products', targetId), payload, { merge: true });
+          firestoreOk = true;
+          console.log('🔥 Produto salvo no Firestore:', targetId);
+        } catch (fsErr) {
+          console.warn('Aviso Firestore:', fsErr);
+          showToast('Aviso Firebase: ' + (fsErr.message || 'Permissão negada no Firestore.'), 'warning');
         }
+      }
+
+      // 2. Salvar na API do Servidor (Express)
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + authToken
+        };
+        if (fbAuth?.currentUser?.email) {
+          headers['X-Admin-Email'] = fbAuth.currentUser.email;
+        }
+
+        const endpoint = id ? `/api/products/${id}` : '/api/products';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(endpoint, {
+          method,
+          headers,
+          body: JSON.stringify(payload)
+        });
 
         const data = await res.json();
         if (res.ok && data.success) {
-          // Salvar também diretamente no Firestore se usuário estiver autenticado no Firebase
-          if (fbDb && fbAuth?.currentUser) {
-            try {
-              const savedId = data.product?.id || id;
-              const prodDocData = {
-                id: savedId,
-                ...payload,
-                updatedAt: new Date().toISOString(),
-                createdAt: data.product?.createdAt || new Date().toISOString()
-              };
-              await setDoc(doc(fbDb, 'products', savedId), prodDocData, { merge: true });
-              console.log('🔥 Produto sincronizado no Firestore');
-            } catch (fsErr) {
-              console.warn('Erro ao salvar no Firestore:', fsErr.message);
-            }
+          serverOk = true;
+          if (res.headers.get('X-New-Session-Token')) {
+            authToken = res.headers.get('X-New-Session-Token');
+            localStorage.setItem('jany_admin_token', authToken);
           }
-
-          showToast(id ? '⚡ Produto atualizado e sincronizado em tempo real!' : '⚡ Novo produto cadastrado e sincronizado em tempo real!', 'success');
-          closeProductModal();
-          await loadProducts();
         } else {
-          showToast(data.error || 'Erro ao salvar produto.', 'error');
+          console.warn('API retorno:', data.error);
         }
-      } catch (err) {
-        console.error('Erro ao salvar produto:', err);
-        showToast('Falha na comunicação com o servidor.', 'error');
-      } finally {
-        if (btnSave) {
-          btnSave.disabled = false;
-          btnSave.textContent = 'Salvar Produto';
+      } catch (srvErr) {
+        console.warn('Erro ao conectar com API:', srvErr);
+      }
+
+      // 3. Atualização otimista imediata na interface
+      if (firestoreOk || serverOk) {
+        const idx = allProducts.findIndex(p => p.id === targetId);
+        if (idx >= 0) {
+          allProducts[idx] = { ...allProducts[idx], ...payload };
+        } else {
+          allProducts.unshift(payload);
         }
+        renderProducts();
+        updateStats();
+        closeProductModal();
+        showToast(id ? '⚡ Produto atualizado com sucesso!' : '⚡ Novo produto cadastrado com sucesso!', 'success');
+      } else {
+        showToast('Não foi possível salvar o produto. Verifique sua conexão ou realize login novamente.', 'error');
+      }
+
+      if (btnSave) {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Salvar Produto';
       }
     }
 
@@ -2745,6 +2813,7 @@
 
     async function handleConfirmDelete() {
       if (!activeDeleteId) return;
+      const targetDeleteId = activeDeleteId;
 
       const btn = document.getElementById('btnConfirmDelete');
       if (btn) {
@@ -2752,37 +2821,59 @@
         btn.textContent = 'Excluindo...';
       }
 
+      let firestoreOk = false;
+      let serverOk = false;
+
+      // 1. Remover do Firestore
+      if (fbDb && fbAuth?.currentUser) {
+        try {
+          await deleteDoc(doc(fbDb, 'products', targetDeleteId));
+          firestoreOk = true;
+          console.log('🔥 Produto removido do Firestore:', targetDeleteId);
+        } catch (fsErr) {
+          console.warn('Erro ao deletar no Firestore:', fsErr);
+          showToast('Aviso Firebase: ' + (fsErr.message || 'Permissão negada no Firestore.'), 'warning');
+        }
+      }
+
+      // 2. Remover da API do Servidor
       try {
-        const res = await fetch(`/api/products/${activeDeleteId}`, {
+        const headers = { 'Authorization': 'Bearer ' + authToken };
+        if (fbAuth?.currentUser?.email) {
+          headers['X-Admin-Email'] = fbAuth.currentUser.email;
+        }
+
+        const res = await fetch(`/api/products/${targetDeleteId}`, {
           method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers
         });
 
         const data = await res.json();
         if (res.ok && data.success) {
-          if (fbDb && fbAuth?.currentUser) {
-            try {
-              await deleteDoc(doc(fbDb, 'products', activeDeleteId));
-              console.log('🔥 Produto removido do Firestore');
-            } catch (fsErr) {
-              console.warn('Erro ao deletar no Firestore:', fsErr.message);
-            }
+          serverOk = true;
+          if (res.headers.get('X-New-Session-Token')) {
+            authToken = res.headers.get('X-New-Session-Token');
+            localStorage.setItem('jany_admin_token', authToken);
           }
+        }
+      } catch (srvErr) {
+        console.warn('Erro ao deletar na API:', srvErr);
+      }
 
-          showToast('⚡ Produto excluído e sincronizado em tempo real!', 'success');
-          closeDeleteModal();
-          await loadProducts();
-        } else {
-          showToast(data.error || 'Erro ao excluir produto.', 'error');
-        }
-      } catch (err) {
-        console.error('Falha ao excluir:', err);
-        showToast('Falha na comunicação com o servidor.', 'error');
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = 'Excluir Produto';
-        }
+      // 3. Remoção otimista imediata na interface
+      if (firestoreOk || serverOk) {
+        allProducts = allProducts.filter(p => p.id !== targetDeleteId);
+        renderProducts();
+        updateStats();
+        closeDeleteModal();
+        showToast('⚡ Produto excluído com sucesso!', 'success');
+      } else {
+        showToast('Não foi possível excluir o produto. Verifique sua permissão ou faça login.', 'error');
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Excluir Produto';
       }
     }
 
