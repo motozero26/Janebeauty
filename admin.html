@@ -271,6 +271,36 @@
       transform: none;
     }
 
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 18px 0;
+      color: var(--ink-muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .auth-divider:not(:empty)::before {
+      margin-right: 12px;
+    }
+
+    .auth-divider:not(:empty)::after {
+      margin-left: 12px;
+    }
+
+    .auth-email-form {
+      margin-bottom: 16px;
+    }
+
     .auth-info-card {
       background: #fdf2f8;
       border: 1px solid #fbcfe8;
@@ -840,6 +870,138 @@
       margin: 0 auto 20px;
     }
 
+    /* Catálogos e Revistas Parceiras */
+    .catalog-admin-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .catalog-admin-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .catalog-admin-cover-box {
+      height: 190px;
+      width: 100%;
+      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .catalog-admin-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .catalog-admin-fallback-cover {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #111b52 0%, #263b94 50%, #b8a36b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .catalog-admin-fallback-brand {
+      font-family: Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .catalog-admin-fallback-sub {
+      font-size: 11px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fff7df;
+    }
+
+    .catalog-admin-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .catalog-admin-tag {
+      display: inline-block;
+      align-self: flex-start;
+      background: #fdf2f7;
+      color: var(--berry);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid #fed7e2;
+      margin-bottom: 8px;
+    }
+
+    .catalog-admin-title {
+      font-family: Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .catalog-admin-desc {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      flex: 1;
+    }
+
+    .catalog-admin-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-sm);
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+    }
+
+    .catalog-admin-link-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .catalog-admin-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
     /* Tabs Navigation */
     .admin-tab-bar {
       display: flex;
@@ -1298,15 +1460,15 @@
       <div class="text-center">
         <span class="auth-badge">🔒 Acesso Restrito</span>
         <h1 class="auth-title">Painel Administrativo</h1>
-        <p class="auth-subtitle">Acesso restrito para administradores autorizados através da Conta Google.</p>
+        <p class="auth-subtitle">Acesse com sua Conta Google ou com seu e-mail cadastrado na lista de administradores.</p>
       </div>
 
       <div id="loginAlert" class="alert alert-danger hidden" role="alert">
         <span>⚠️</span>
-        <span id="loginAlertText">Acesso não autorizado para esta conta Google.</span>
+        <span id="loginAlertText">Acesso não autorizado para esta conta.</span>
       </div>
 
-      <!-- Login Exclusivo com Conta Google (Firebase Auth) -->
+      <!-- Login com Conta Google (Firebase Auth) -->
       <button type="button" id="btnGoogleLogin" class="btn-google-login">
         <svg width="20" height="20" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1317,9 +1479,27 @@
         <span>Entrar com Conta Google</span>
       </button>
 
+      <div class="auth-divider">
+        <span>ou acesse diretamente com seu e-mail</span>
+      </div>
+
+      <!-- Formulário de Login Direto com E-mail Autorizado -->
+      <form id="emailLoginForm" class="auth-email-form" autocomplete="on">
+        <div class="form-group" style="margin-bottom: 12px; text-align: left;">
+          <label class="form-label" for="loginEmailInput" style="font-size: 12px; font-weight: 600; color: var(--navy); display: flex; justify-content: space-between;">
+            <span>E-mail do Administrador</span>
+            <span style="font-weight: 400; color: var(--ink-muted);">Autorização instantânea</span>
+          </label>
+          <input type="email" id="loginEmailInput" class="form-control" placeholder="ex: usuario@gmail.com" required autocomplete="email">
+        </div>
+        <button type="submit" id="btnEmailLogin" class="btn-primary-action" style="width: 100%; justify-content: center; padding: 12px 18px; font-size: 14px; font-weight: 700;">
+          <span>Entrar com E-mail Autorizado →</span>
+        </button>
+      </form>
+
       <div class="auth-info-card">
         <p>
-          O painel valida instantaneamente sua conta Google contra a lista de administradores autorizados.
+          O sistema valida seu e-mail instantaneamente na lista de administradores autorizados. Novos administradores autorizados pelo proprietário têm acesso imediato.
         </p>
       </div>
 
@@ -1368,6 +1548,11 @@
           <span class="tab-icon">🛍️</span>
           <span>Produtos</span>
           <span id="tabBadgeProducts" class="tab-badge">0</span>
+        </button>
+        <button type="button" id="tabBtnCatalogs" class="admin-tab-btn" title="Gerenciar catálogos e revistas parceiras">
+          <span class="tab-icon">📖</span>
+          <span>Catálogos & Revistas</span>
+          <span id="tabBadgeCatalogs" class="tab-badge">0</span>
         </button>
         <button type="button" id="tabBtnAdmins" class="admin-tab-btn" title="Gerenciar e-mails autorizados para login de administradores">
           <span class="tab-icon">👥</span>
@@ -1454,6 +1639,69 @@
 
         <!-- Grade de Produtos -->
         <div id="productsGrid" class="product-grid">
+          <!-- Inserido dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- ABA 2: GERENCIAMENTO DE CATÁLOGOS & REVISTAS -->
+      <div id="tabPaneCatalogs" class="hidden">
+        <div class="admin-title-row">
+          <div>
+            <h1 class="admin-heading">Gerenciamento de Catálogos & Revistas</h1>
+            <p class="admin-desc">Adicione, edite links de PDF, Google Drive, capas e remova catálogos de marcas parceiras (O Boticário, Natura, Eudora, Avon, etc.) exibidos aos clientes.</p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="btnOpenNewCatalogModal" class="btn-primary-action">
+              <span>+ Adicionar Novo Catálogo</span>
+            </button>
+            <button type="button" id="btnResetDefaultCatalogs" class="btn-secondary-action" title="Restaura os catálogos originais de fábrica caso necessário">
+              <span>↺ Restaurar Padrões</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Métricas / KPIs de Catálogos -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">📖</div>
+            <div class="stat-info">
+              <div id="statTotalCatalogs" class="stat-val">0</div>
+              <div class="stat-lbl">Total de Catálogos</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔗</div>
+            <div class="stat-info">
+              <div id="statCatalogsWithLink" class="stat-val">0</div>
+              <div class="stat-lbl">Com Link de Revista/PDF</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🖼️</div>
+            <div class="stat-info">
+              <div id="statCatalogsWithCover" class="stat-val">0</div>
+              <div class="stat-lbl">Com Capa em Alta Definição</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de ferramentas de Catálogos -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" id="searchCatalogInput" placeholder="Buscar catálogo por marca, linha ou descrição...">
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <span style="font-size: 13px; color: var(--ink-muted);">💡 As alterações nos catálogos sincronizam em tempo real e aparecem instantaneamente na seção "Catálogos" da loja.</span>
+          </div>
+        </div>
+
+        <!-- Grade de Catálogos -->
+        <div id="catalogsGrid" class="product-grid">
           <!-- Inserido dinamicamente via JS -->
         </div>
       </div>
@@ -1670,6 +1918,116 @@
     </div>
   </div>
 
+  <!-- MODAL: ADICIONAR OU EDITAR CATÁLOGO -->
+  <div id="catalogModalBackdrop" class="modal-backdrop">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalCatalogTitle">Adicionar Novo Catálogo</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseCatalogModal" aria-label="Fechar">&times;</button>
+      </div>
+
+      <form id="catalogForm" autocomplete="off">
+        <input type="hidden" id="editCatalogId" value="">
+        <div class="modal-body">
+
+          <!-- Marca / Título do Catálogo -->
+          <div class="form-group">
+            <label class="form-label" for="catalogTitle">Nome da Marca / Catálogo *</label>
+            <input type="text" id="catalogTitle" class="form-control" required placeholder="ex: O Boticário, Natura, Eudora, Avon, Mahogany">
+          </div>
+
+          <!-- Categoria / Segmento -->
+          <div class="form-group">
+            <label class="form-label" for="catalogCategory">Linha / Segmento *</label>
+            <input type="text" id="catalogCategory" class="form-control" required placeholder="ex: Perfumaria, Beleza consciente, Seleção especial, Cuidados diários">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+              <button type="button" class="tag-chip" onclick="window.setCatalogCategory('Perfumaria')">Perfumaria</button>
+              <button type="button" class="tag-chip" onclick="window.setCatalogCategory('Beleza consciente')">Beleza consciente</button>
+              <button type="button" class="tag-chip" onclick="window.setCatalogCategory('Seleção especial')">Seleção especial</button>
+              <button type="button" class="tag-chip" onclick="window.setCatalogCategory('Perfumaria e cuidados')">Perfumaria e cuidados</button>
+              <button type="button" class="tag-chip" onclick="window.setCatalogCategory('Maquiagem e Skincare')">Maquiagem e Skincare</button>
+            </div>
+          </div>
+
+          <!-- Descrição -->
+          <div class="form-group">
+            <label class="form-label" for="catalogDescription">Breve Descrição</label>
+            <textarea id="catalogDescription" class="form-control" rows="2" placeholder="Fragrâncias, kits e cuidados para presentear."></textarea>
+          </div>
+
+          <!-- Link do Catálogo (Drive, PDF, etc.) -->
+          <div class="form-group">
+            <label class="form-label" for="catalogLink">Link do Catálogo (Google Drive, PDF ou Revista Digital) *</label>
+            <input type="url" id="catalogLink" class="form-control" required placeholder="https://drive.google.com/... ou https://...">
+            <p style="font-size: 12px; color: var(--ink-muted); margin-top: 4px;">
+              💡 Dica: Cole o link de visualização pública do Google Drive ou o link direto do PDF da revista para os clientes abrirem no celular.
+            </p>
+          </div>
+
+          <!-- Texto do Botão de Ação -->
+          <div class="form-group">
+            <label class="form-label" for="catalogBtnText">Texto do Botão de Acesso</label>
+            <input type="text" id="catalogBtnText" class="form-control" placeholder="Abrir catálogo →" value="Abrir catálogo →">
+          </div>
+
+          <!-- Capa do Catálogo -->
+          <div class="form-group">
+            <label class="form-label">Imagem de Capa do Catálogo (Opcional)</label>
+            <div class="image-picker-zone" id="catalogDropZone">
+              <div style="font-size: 24px; margin-bottom: 6px;">📖</div>
+              <div style="font-size: 14px; font-weight: 600; color: var(--navy);">Arraste a capa do catálogo ou clique para enviar</div>
+              <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Formatos aceitos: PNG, JPG, WEBP</div>
+              <input type="file" id="catalogFileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div style="margin-top: 10px;">
+              <label class="form-label" for="catalogCoverUrl" style="font-size: 12px;">Ou informe o caminho/URL da imagem de capa:</label>
+              <input type="text" id="catalogCoverUrl" class="form-control" placeholder="ex: https://... ou data:image/jpeg;base64,...">
+            </div>
+
+            <!-- Preview da Capa -->
+            <div id="catalogPreviewContainer" class="image-preview-area hidden">
+              <img id="catalogImagePreview" src="" alt="Pré-visualização da capa" class="preview-thumb">
+              <div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--navy);">Capa Selecionada</div>
+                <button type="button" id="btnRemoveCatalogImage" style="background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; text-decoration: underline;">Remover capa</button>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--ink-light); margin-top: 4px;">
+              * Se não enviar imagem, será gerada uma elegante capa gradiente tipográfica com a marca e a categoria.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-action" id="btnCancelCatalogModal">Cancelar</button>
+          <button type="submit" id="btnSaveCatalog" class="btn-primary-action">
+            <span>Salvar Catálogo</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMAR EXCLUSÃO DE CATÁLOGO -->
+  <div id="deleteCatalogModalBackdrop" class="modal-backdrop">
+    <div class="modal-window" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: var(--danger);">Excluir Catálogo?</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseDeleteCatalogModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza de que deseja remover o catálogo da marca <strong id="deleteCatalogTitle" style="color: var(--navy);"></strong>?</p>
+        <p style="font-size: 13px; color: var(--ink-muted);">Ele deixará de ser exibido na seção de Catálogos da loja imediatamente.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary-action" id="btnCancelDeleteCatalog">Cancelar</button>
+        <button type="button" id="btnConfirmDeleteCatalog" class="btn-primary-action" style="background: var(--danger);">Excluir Catálogo</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: AUTORIZAR NOVO ADMINISTRADOR -->
   <div id="addAdminModalBackdrop" class="modal-backdrop">
     <div class="modal-window" style="max-width: 480px;">
@@ -1776,6 +2134,8 @@
     let currentAdminUser = localStorage.getItem('jany_admin_user') || 'admin';
     let allProducts = [];
     let activeDeleteId = null;
+    let allCatalogs = [];
+    let activeDeleteCatalogId = null;
     let allAdmins = [];
     let activeDeleteAdminId = null;
     let activeDeleteAdminEmail = '';
@@ -1860,6 +2220,7 @@
                 localStorage.setItem('jany_admin_user', currentAdminUser);
                 showDashboardView();
                 loadProducts();
+                loadCatalogs();
                 loadAdmins();
               }
             } catch (authSyncErr) {
@@ -1938,6 +2299,7 @@
           localStorage.setItem('jany_admin_user', currentAdminUser);
           showDashboardView();
           loadProducts();
+          loadCatalogs();
           loadAdmins();
         } else {
           // Se o Firebase Auth tiver sessão ativa, aguardar a restauração automática do token
@@ -1996,6 +2358,12 @@
       const btnGoogle = document.getElementById('btnGoogleLogin');
       if (btnGoogle) {
         btnGoogle.addEventListener('click', handleGoogleLogin);
+      }
+
+      // Login com E-mail Autorizado
+      const emailLoginForm = document.getElementById('emailLoginForm');
+      if (emailLoginForm) {
+        emailLoginForm.addEventListener('submit', handleEmailLogin);
       }
 
       // Sincronizar catálogo com Firebase
@@ -2113,15 +2481,72 @@
         });
       }
 
-      // Alternância de Abas (Produtos / Administradores)
+      // Alternância de Abas (Produtos / Catálogos / Administradores)
       const tabBtnProducts = document.getElementById('tabBtnProducts');
       if (tabBtnProducts) {
         tabBtnProducts.addEventListener('click', () => switchTab('products'));
+      }
+      const tabBtnCatalogs = document.getElementById('tabBtnCatalogs');
+      if (tabBtnCatalogs) {
+        tabBtnCatalogs.addEventListener('click', () => switchTab('catalogs'));
       }
       const tabBtnAdmins = document.getElementById('tabBtnAdmins');
       if (tabBtnAdmins) {
         tabBtnAdmins.addEventListener('click', () => switchTab('admins'));
       }
+
+      // Eventos de Gerenciamento de Catálogos
+      const searchCatalogInput = document.getElementById('searchCatalogInput');
+      if (searchCatalogInput) {
+        searchCatalogInput.addEventListener('input', renderCatalogs);
+      }
+
+      const btnOpenNewCatalogModal = document.getElementById('btnOpenNewCatalogModal');
+      if (btnOpenNewCatalogModal) {
+        btnOpenNewCatalogModal.addEventListener('click', (e) => {
+          e.preventDefault();
+          openCatalogModal();
+        });
+      }
+
+      const btnCloseCatalogModal = document.getElementById('btnCloseCatalogModal');
+      if (btnCloseCatalogModal) btnCloseCatalogModal.addEventListener('click', closeCatalogModal);
+
+      const btnCancelCatalogModal = document.getElementById('btnCancelCatalogModal');
+      if (btnCancelCatalogModal) btnCancelCatalogModal.addEventListener('click', closeCatalogModal);
+
+      const catalogForm = document.getElementById('catalogForm');
+      if (catalogForm) catalogForm.addEventListener('submit', handleSaveCatalog);
+
+      const catalogModalBackdrop = document.getElementById('catalogModalBackdrop');
+      if (catalogModalBackdrop) {
+        catalogModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === catalogModalBackdrop) closeCatalogModal();
+        });
+      }
+
+      const btnResetDefaultCatalogs = document.getElementById('btnResetDefaultCatalogs');
+      if (btnResetDefaultCatalogs) {
+        btnResetDefaultCatalogs.addEventListener('click', handleResetDefaultCatalogs);
+      }
+
+      const btnCloseDeleteCatalogModal = document.getElementById('btnCloseDeleteCatalogModal');
+      if (btnCloseDeleteCatalogModal) btnCloseDeleteCatalogModal.addEventListener('click', closeDeleteCatalogModal);
+
+      const btnCancelDeleteCatalog = document.getElementById('btnCancelDeleteCatalog');
+      if (btnCancelDeleteCatalog) btnCancelDeleteCatalog.addEventListener('click', closeDeleteCatalogModal);
+
+      const btnConfirmDeleteCatalog = document.getElementById('btnConfirmDeleteCatalog');
+      if (btnConfirmDeleteCatalog) btnConfirmDeleteCatalog.addEventListener('click', handleConfirmDeleteCatalog);
+
+      const deleteCatalogModalBackdrop = document.getElementById('deleteCatalogModalBackdrop');
+      if (deleteCatalogModalBackdrop) {
+        deleteCatalogModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === deleteCatalogModalBackdrop) closeDeleteCatalogModal();
+        });
+      }
+
+      setupCatalogImagePicker();
 
       // Modais de Administrador
       const btnOpenAddAdminModal = document.getElementById('btnOpenAddAdminModal');
@@ -2324,6 +2749,7 @@
           showDashboardView();
           showToast(`Bem-vindo, ${user.displayName || user.email}! Acesso autorizado.`, 'success');
           await loadProducts();
+          await loadCatalogs();
           await loadAdmins();
           await autoSeedFirestoreIfEmpty();
         } else {
@@ -2342,9 +2768,9 @@
             const host = window.location.hostname;
             loginAlertText.innerHTML = `<strong>Domínio não autorizado no Firebase Auth!</strong><br>` +
               `O domínio <code>${host}</code> precisa ser adicionado aos <em>Domínios Autorizados</em> no Firebase Console.<br>` +
-              `<a href="https://console.firebase.google.com/project/gen-lang-client-0932299286/authentication/settings" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-weight:bold;color:#be185d;text-decoration:underline;">Abrir Configurações do Firebase Console →</a>`;
+              `<span style="display:block;margin-top:6px;font-weight:600;color:var(--navy);">💡 Dica: Você pode entrar agora mesmo digitando seu e-mail no formulário abaixo!</span>`;
           } else {
-            loginAlertText.textContent = err.message || 'Falha ao autenticar com o Google.';
+            loginAlertText.innerHTML = `${escapeHtml(err.message || 'Falha ao autenticar com o Google.')}<br><span style="display:block;margin-top:6px;font-weight:600;color:var(--navy);">💡 Dica: Você também pode entrar diretamente digitando seu e-mail no campo abaixo.</span>`;
           }
         }
         if (loginAlert) loginAlert.classList.remove('hidden');
@@ -2352,6 +2778,59 @@
         if (btnGoogle) {
           btnGoogle.disabled = false;
           btnGoogle.innerHTML = originalHtml;
+        }
+      }
+    }
+
+    // 3.1 Login Direto com E-mail Autorizado
+    async function handleEmailLogin(e) {
+      if (e) e.preventDefault();
+      const emailInput = document.getElementById('loginEmailInput');
+      const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+      if (!email) {
+        showToast('Por favor, informe seu e-mail cadastrado.', 'error');
+        if (emailInput) emailInput.focus();
+        return;
+      }
+
+      const btnEmail = document.getElementById('btnEmailLogin');
+      const originalText = btnEmail ? btnEmail.innerHTML : '';
+      if (btnEmail) {
+        btnEmail.disabled = true;
+        btnEmail.innerHTML = '<span>Verificando autorização...</span>';
+      }
+      if (loginAlert) loginAlert.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          authToken = data.token;
+          currentAdminUser = data.user.username;
+          localStorage.setItem('jany_admin_token', authToken);
+          localStorage.setItem('jany_admin_user', currentAdminUser);
+
+          showDashboardView();
+          showToast(`Bem-vindo, ${data.user.username}! Acesso concedido com sucesso.`, 'success');
+          await loadProducts();
+          await loadCatalogs();
+          await loadAdmins();
+        } else {
+          if (loginAlertText) loginAlertText.textContent = data.error || 'Acesso negado: este e-mail não possui autorização ativa. Solicite a inclusão ao proprietário.';
+          if (loginAlert) loginAlert.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Erro no login por e-mail:', err);
+        if (loginAlertText) loginAlertText.textContent = 'Erro de comunicação com o servidor. Verifique sua conexão e tente novamente.';
+        if (loginAlert) loginAlert.classList.remove('hidden');
+      } finally {
+        if (btnEmail) {
+          btnEmail.disabled = false;
+          btnEmail.innerHTML = originalText;
         }
       }
     }
@@ -2955,25 +3434,541 @@
         .replace(/'/g, '&#039;');
     }
 
-    // 16. Gerenciamento de Abas (Produtos / Administradores)
+    // 16. Gerenciamento de Abas (Produtos / Catálogos / Administradores)
     function switchTab(tabName) {
       currentTab = tabName;
       const tabBtnProducts = document.getElementById('tabBtnProducts');
+      const tabBtnCatalogs = document.getElementById('tabBtnCatalogs');
       const tabBtnAdmins = document.getElementById('tabBtnAdmins');
+
       const tabPaneProducts = document.getElementById('tabPaneProducts');
+      const tabPaneCatalogs = document.getElementById('tabPaneCatalogs');
       const tabPaneAdmins = document.getElementById('tabPaneAdmins');
 
-      if (tabName === 'admins') {
-        if (tabBtnProducts) tabBtnProducts.classList.remove('active');
+      if (tabBtnProducts) tabBtnProducts.classList.remove('active');
+      if (tabBtnCatalogs) tabBtnCatalogs.classList.remove('active');
+      if (tabBtnAdmins) tabBtnAdmins.classList.remove('active');
+
+      if (tabPaneProducts) tabPaneProducts.classList.add('hidden');
+      if (tabPaneCatalogs) tabPaneCatalogs.classList.add('hidden');
+      if (tabPaneAdmins) tabPaneAdmins.classList.add('hidden');
+
+      if (tabName === 'catalogs') {
+        if (tabBtnCatalogs) tabBtnCatalogs.classList.add('active');
+        if (tabPaneCatalogs) tabPaneCatalogs.classList.remove('hidden');
+        loadCatalogs();
+      } else if (tabName === 'admins') {
         if (tabBtnAdmins) tabBtnAdmins.classList.add('active');
-        if (tabPaneProducts) tabPaneProducts.classList.add('hidden');
         if (tabPaneAdmins) tabPaneAdmins.classList.remove('hidden');
         loadAdmins();
       } else {
-        if (tabBtnAdmins) tabBtnAdmins.classList.remove('active');
         if (tabBtnProducts) tabBtnProducts.classList.add('active');
-        if (tabPaneAdmins) tabPaneAdmins.classList.add('hidden');
         if (tabPaneProducts) tabPaneProducts.classList.remove('hidden');
+      }
+    }
+
+    // 16.1 Upload e Seleção de Capa de Catálogo
+    function setupCatalogImagePicker() {
+      const dropZone = document.getElementById('catalogDropZone');
+      const fileInput = document.getElementById('catalogFileInput');
+      const catalogCoverUrl = document.getElementById('catalogCoverUrl');
+      const imagePreview = document.getElementById('catalogImagePreview');
+      const previewContainer = document.getElementById('catalogPreviewContainer');
+      const btnRemove = document.getElementById('btnRemoveCatalogImage');
+
+      if (!dropZone || !fileInput) return;
+
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      ['dragenter', 'dragover'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        dropZone.addEventListener(name, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-active');
+        });
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt ? dt.files : null;
+        if (files && files.length > 0) {
+          handleSelectedCatalogFile(files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+          handleSelectedCatalogFile(fileInput.files[0]);
+        }
+      });
+
+      if (catalogCoverUrl) {
+        catalogCoverUrl.addEventListener('input', () => {
+          const val = catalogCoverUrl.value.trim();
+          if (val) {
+            if (imagePreview) imagePreview.src = val;
+            if (previewContainer) previewContainer.classList.remove('hidden');
+          } else {
+            if (imagePreview) imagePreview.src = '';
+            if (previewContainer) previewContainer.classList.add('hidden');
+          }
+        });
+      }
+
+      if (btnRemove) {
+        btnRemove.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (catalogCoverUrl) catalogCoverUrl.value = '';
+          if (fileInput) fileInput.value = '';
+          if (imagePreview) imagePreview.src = '';
+          if (previewContainer) previewContainer.classList.add('hidden');
+        });
+      }
+    }
+
+    function handleSelectedCatalogFile(file) {
+      if (!file || !file.type.startsWith('image/')) {
+        showToast('Por favor, selecione um arquivo de imagem válido.', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawBase64 = e.target.result;
+        compressCatalogImage(rawBase64, 900, 1200, 0.82, (optimizedBase64) => {
+          const catalogCoverUrl = document.getElementById('catalogCoverUrl');
+          const imagePreview = document.getElementById('catalogImagePreview');
+          const previewContainer = document.getElementById('catalogPreviewContainer');
+
+          if (catalogCoverUrl) catalogCoverUrl.value = optimizedBase64;
+          if (imagePreview) imagePreview.src = optimizedBase64;
+          if (previewContainer) previewContainer.classList.remove('hidden');
+          showToast('Capa do catálogo processada com sucesso!', 'success');
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function compressCatalogImage(base64Str, maxWidth, maxHeight, quality, callback) {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const out = canvas.toDataURL('image/jpeg', quality);
+        callback(out);
+      };
+      img.onerror = () => callback(base64Str);
+      img.src = base64Str;
+    }
+
+    function setCatalogCategory(catName) {
+      const input = document.getElementById('catalogCategory');
+      if (input) {
+        input.value = catName;
+        input.focus();
+      }
+    }
+
+    // 16.2 Carregar Catálogos
+    let unsubscribeCatalogsFirestore = null;
+    function startFirestoreCatalogsRealtimeListener() {
+      if (!fbDb || unsubscribeCatalogsFirestore) return;
+      try {
+        unsubscribeCatalogsFirestore = onSnapshot(collection(fbDb, 'catalogs'), (snap) => {
+          if (!snap.empty) {
+            const fsCats = [];
+            snap.forEach(d => fsCats.push(d.data()));
+            fsCats.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+            const catModal = document.getElementById('catalogModalBackdrop');
+            const delCatModal = document.getElementById('deleteCatalogModalBackdrop');
+            const isCatModalOpen = (catModal && catModal.classList.contains('active')) ||
+                                   (delCatModal && delCatModal.classList.contains('active'));
+
+            allCatalogs = fsCats;
+            if (!isCatModalOpen) {
+              renderCatalogs();
+              updateCatalogStats();
+            }
+            console.log('⚡ Catálogos parceiros sincronizados em tempo real com o Firestore:', fsCats.length);
+
+            if (authToken) {
+              fetch('/api/catalogs/sync', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + authToken
+                },
+                body: JSON.stringify({ catalogs: fsCats })
+              }).catch(() => {});
+            }
+          }
+        }, (err) => {
+          console.warn('Realtime catalogs snapshot error:', err);
+        });
+      } catch (e) {
+        console.warn('Erro ao inicializar realtime listener de catálogos:', e);
+      }
+    }
+
+    async function loadCatalogs() {
+      try {
+        const res = await fetch('/api/catalogs');
+        if (res.ok) {
+          const cats = await res.json();
+          allCatalogs = cats || [];
+          renderCatalogs();
+          updateCatalogStats();
+          startFirestoreCatalogsRealtimeListener();
+        }
+      } catch (err) {
+        console.warn('Erro ao buscar catálogos:', err);
+      }
+    }
+
+    // 16.3 Atualizar Estatísticas de Catálogos
+    function updateCatalogStats() {
+      const statTotal = document.getElementById('statTotalCatalogs');
+      const statWithLink = document.getElementById('statCatalogsWithLink');
+      const statWithCover = document.getElementById('statCatalogsWithCover');
+      const badge = document.getElementById('tabBadgeCatalogs');
+
+      if (badge) badge.textContent = allCatalogs.length;
+      if (statTotal) statTotal.textContent = allCatalogs.length;
+      if (statWithLink) {
+        const count = allCatalogs.filter(c => c.link && c.link.trim() !== '').length;
+        statWithLink.textContent = count;
+      }
+      if (statWithCover) {
+        const count = allCatalogs.filter(c => c.coverImage && c.coverImage.trim() !== '').length;
+        statWithCover.textContent = count;
+      }
+    }
+
+    // 16.4 Renderizar Catálogos na Grade
+    function renderCatalogs() {
+      const grid = document.getElementById('catalogsGrid');
+      if (!grid) return;
+
+      const searchInput = document.getElementById('searchCatalogInput');
+      const term = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+      let filtered = allCatalogs.filter(c => {
+        if (!term) return true;
+        const title = (c.title || '').toLowerCase();
+        const category = (c.category || '').toLowerCase();
+        const desc = (c.description || '').toLowerCase();
+        return title.includes(term) || category.includes(term) || desc.includes(term);
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">📖</div>
+            <h3>Nenhum catálogo encontrado</h3>
+            <p>${term ? 'Nenhum catálogo corresponde aos termos pesquisados.' : 'Cadastre os catálogos parceiros (O Boticário, Natura, Eudora, Avon, etc.) para os clientes folhearem online.'}</p>
+            <button type="button" class="btn-primary-action" onclick="window.openNewCatalogModal()">
+              <span>+ Adicionar Primeiro Catálogo</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(c => {
+        const coverHtml = c.coverImage
+          ? `<div class="catalog-admin-cover-box">
+              <img src="${escapeHtml(c.coverImage)}" class="catalog-admin-cover-img" alt="${escapeHtml(c.title)}" loading="lazy">
+             </div>`
+          : `<div class="catalog-admin-cover-box">
+              <div class="catalog-admin-fallback-cover">
+                <div class="catalog-admin-fallback-brand">${escapeHtml(c.title)}</div>
+                <div class="catalog-admin-fallback-sub">${escapeHtml(c.category || 'Catálogo Digital')}</div>
+              </div>
+             </div>`;
+
+        return `
+          <div class="catalog-admin-card" id="card_cat_${escapeHtml(c.id)}">
+            ${coverHtml}
+            <div class="catalog-admin-body">
+              <span class="catalog-admin-tag">${escapeHtml(c.category || 'Catálogo')}</span>
+              <h3 class="catalog-admin-title">${escapeHtml(c.title)}</h3>
+              <p class="catalog-admin-desc">${escapeHtml(c.description || 'Fragrâncias, cosméticos e cuidados para presentear.')}</p>
+
+              <a href="${escapeHtml(c.link || '#')}" target="_blank" rel="noopener" class="catalog-admin-link-btn" title="Abrir link do catálogo em nova aba">
+                <span>🔗 ${escapeHtml(c.btnText || 'Abrir catálogo →')}</span>
+              </a>
+
+              <div class="catalog-admin-actions">
+                <button type="button" class="btn-action-edit" onclick="window.editCatalog('${escapeHtml(c.id)}')">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Editar
+                </button>
+                <button type="button" class="btn-action-delete" title="Excluir Catálogo" onclick="window.confirmDeleteCatalog('${escapeHtml(c.id)}')">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 16.5 Modais de Catálogo
+    function openCatalogModal(cat = null) {
+      const editCatalogId = document.getElementById('editCatalogId');
+      const modalCatalogTitle = document.getElementById('modalCatalogTitle');
+      const catalogTitle = document.getElementById('catalogTitle');
+      const catalogCategory = document.getElementById('catalogCategory');
+      const catalogDescription = document.getElementById('catalogDescription');
+      const catalogLink = document.getElementById('catalogLink');
+      const catalogBtnText = document.getElementById('catalogBtnText');
+      const catalogCoverUrl = document.getElementById('catalogCoverUrl');
+      const fileInput = document.getElementById('catalogFileInput');
+
+      if (editCatalogId) editCatalogId.value = cat ? cat.id : '';
+      if (modalCatalogTitle) modalCatalogTitle.textContent = cat ? 'Editar Catálogo' : 'Adicionar Novo Catálogo';
+
+      if (catalogTitle) catalogTitle.value = cat ? cat.title : '';
+      if (catalogCategory) catalogCategory.value = cat ? (cat.category || '') : 'Perfumaria';
+      if (catalogDescription) catalogDescription.value = cat ? (cat.description || '') : '';
+      if (catalogLink) catalogLink.value = cat ? (cat.link || '') : '';
+      if (catalogBtnText) catalogBtnText.value = cat ? (cat.btnText || 'Abrir catálogo →') : 'Abrir catálogo →';
+      if (catalogCoverUrl) catalogCoverUrl.value = cat ? (cat.coverImage || '') : '';
+      if (fileInput) fileInput.value = '';
+
+      const imagePreview = document.getElementById('catalogImagePreview');
+      const previewContainer = document.getElementById('catalogPreviewContainer');
+
+      if (cat && cat.coverImage) {
+        if (imagePreview) imagePreview.src = cat.coverImage;
+        if (previewContainer) previewContainer.classList.remove('hidden');
+      } else {
+        if (imagePreview) imagePreview.src = '';
+        if (previewContainer) previewContainer.classList.add('hidden');
+      }
+
+      const backdrop = document.getElementById('catalogModalBackdrop');
+      if (backdrop) backdrop.classList.add('active');
+      if (catalogTitle) setTimeout(() => catalogTitle.focus(), 50);
+    }
+
+    function closeCatalogModal() {
+      const backdrop = document.getElementById('catalogModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+      const form = document.getElementById('catalogForm');
+      if (form) form.reset();
+      const previewContainer = document.getElementById('catalogPreviewContainer');
+      if (previewContainer) previewContainer.classList.add('hidden');
+    }
+
+    function editCatalog(id) {
+      const cat = allCatalogs.find(c => c.id === id);
+      if (cat) {
+        openCatalogModal(cat);
+      }
+    }
+
+    async function handleSaveCatalog(e) {
+      e.preventDefault();
+
+      const editCatalogId = document.getElementById('editCatalogId');
+      const catalogTitle = document.getElementById('catalogTitle');
+      const catalogCategory = document.getElementById('catalogCategory');
+      const catalogDescription = document.getElementById('catalogDescription');
+      const catalogLink = document.getElementById('catalogLink');
+      const catalogBtnText = document.getElementById('catalogBtnText');
+      const catalogCoverUrl = document.getElementById('catalogCoverUrl');
+
+      const title = (catalogTitle ? catalogTitle.value : '').trim();
+      const category = (catalogCategory ? catalogCategory.value : '').trim();
+      const description = (catalogDescription ? catalogDescription.value : '').trim();
+      const link = (catalogLink ? catalogLink.value : '').trim();
+      const btnText = (catalogBtnText && catalogBtnText.value.trim()) || 'Abrir catálogo →';
+      const coverImage = (catalogCoverUrl ? catalogCoverUrl.value : '').trim();
+
+      if (!title) {
+        showToast('Por favor, informe o nome da marca ou do catálogo.', 'error');
+        if (catalogTitle) catalogTitle.focus();
+        return;
+      }
+      if (!link) {
+        showToast('Por favor, informe o link do catálogo (PDF ou Google Drive).', 'error');
+        if (catalogLink) catalogLink.focus();
+        return;
+      }
+
+      const isEdit = editCatalogId && editCatalogId.value;
+      const id = isEdit ? editCatalogId.value : ('cat_' + Date.now());
+
+      const catalogData = {
+        id,
+        title,
+        category: category || 'Perfumaria',
+        description,
+        link,
+        btnText,
+        coverImage,
+        createdAt: isEdit ? (allCatalogs.find(c => c.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Atualização otimista
+      if (isEdit) {
+        const idx = allCatalogs.findIndex(c => c.id === id);
+        if (idx !== -1) allCatalogs[idx] = catalogData;
+      } else {
+        allCatalogs.unshift(catalogData);
+      }
+
+      renderCatalogs();
+      updateCatalogStats();
+      closeCatalogModal();
+      showToast(isEdit ? 'Catálogo atualizado com sucesso!' : 'Novo catálogo adicionado!', 'success');
+
+      // Salvar na API
+      try {
+        const url = isEdit ? `/api/catalogs/${id}` : '/api/catalogs';
+        const method = isEdit ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify(catalogData)
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn('Aviso ao salvar catálogo na API:', errData);
+        }
+      } catch (apiErr) {
+        console.warn('Erro de rede ao salvar catálogo na API:', apiErr);
+      }
+
+      // Sincronizar diretamente com Firestore se autenticado
+      if (fbDb && fbAuth?.currentUser) {
+        try {
+          await setDoc(doc(fbDb, 'catalogs', id), catalogData, { merge: true });
+          console.log('🔥 Catálogo sincronizado diretamente no Firestore:', id);
+        } catch (fsErr) {
+          console.warn('Aviso ao sincronizar catálogo no Firestore:', fsErr.message);
+        }
+      }
+    }
+
+    // 16.6 Exclusão de Catálogo
+    function confirmDeleteCatalog(id) {
+      activeDeleteCatalogId = id;
+      const cat = allCatalogs.find(c => c.id === id);
+      const titleEl = document.getElementById('deleteCatalogTitle');
+      if (titleEl) titleEl.textContent = cat ? cat.title : 'este catálogo';
+
+      const backdrop = document.getElementById('deleteCatalogModalBackdrop');
+      if (backdrop) backdrop.classList.add('active');
+    }
+
+    function closeDeleteCatalogModal() {
+      activeDeleteCatalogId = null;
+      const backdrop = document.getElementById('deleteCatalogModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    async function handleConfirmDeleteCatalog() {
+      if (!activeDeleteCatalogId) return;
+      const idToDelete = activeDeleteCatalogId;
+
+      // Otimista
+      allCatalogs = allCatalogs.filter(c => c.id !== idToDelete);
+      renderCatalogs();
+      updateCatalogStats();
+      closeDeleteCatalogModal();
+      showToast('Catálogo removido com sucesso!', 'success');
+
+      // Remover via API
+      try {
+        await fetch(`/api/catalogs/${idToDelete}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+      } catch (err) {
+        console.warn('Erro ao remover catálogo via API:', err);
+      }
+
+      // Remover no Firestore se conectado
+      if (fbDb && fbAuth?.currentUser) {
+        try {
+          await deleteDoc(doc(fbDb, 'catalogs', idToDelete));
+          console.log('🔥 Catálogo removido do Firestore:', idToDelete);
+        } catch (fsErr) {
+          console.warn('Erro ao deletar no Firestore:', fsErr.message);
+        }
+      }
+    }
+
+    // 16.7 Restaurar Padrões de Catálogos
+    async function handleResetDefaultCatalogs() {
+      if (!authToken) return;
+      const btn = document.getElementById('btnResetDefaultCatalogs');
+      if (btn) btn.textContent = 'Restaurando...';
+
+      try {
+        const res = await fetch('/api/catalogs/reset', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        if (res.ok) {
+          const resetCats = await res.json();
+          allCatalogs = resetCats;
+          renderCatalogs();
+          updateCatalogStats();
+
+          // Sincronizar com Firestore se autenticado
+          if (fbDb && fbAuth?.currentUser) {
+            try {
+              for (const c of resetCats) {
+                await setDoc(doc(fbDb, 'catalogs', c.id), c, { merge: true });
+              }
+            } catch (fsErr) {
+              console.warn('Erro ao restaurar catálogos no Firestore:', fsErr);
+            }
+          }
+          showToast('Catálogos originais restaurados com sucesso!', 'success');
+        } else {
+          showToast('Erro ao restaurar catálogos padrão.', 'error');
+        }
+      } catch (err) {
+        showToast('Falha na comunicação com o servidor.', 'error');
+      } finally {
+        if (btn) btn.textContent = '↺ Restaurar Padrões';
       }
     }
 
@@ -3267,6 +4262,14 @@
     window.toggleAdminStatus = toggleAdminStatus;
     window.confirmDeleteAdmin = confirmDeleteAdmin;
     window.closeDeleteAdminModal = closeDeleteAdminModal;
+    window.openCatalogModal = openCatalogModal;
+    window.openNewCatalogModal = () => openCatalogModal();
+    window.closeCatalogModal = closeCatalogModal;
+    window.editCatalog = editCatalog;
+    window.confirmDeleteCatalog = confirmDeleteCatalog;
+    window.closeDeleteCatalogModal = closeDeleteCatalogModal;
+    window.setCatalogCategory = setCatalogCategory;
+    window.handleResetDefaultCatalogs = handleResetDefaultCatalogs;
   </script>
 </body>
 </html>

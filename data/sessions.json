@@ -18,5 +18,101 @@
     "role": "superadmin",
     "createdAt": 1789608648971,
     "expiresAt": 1790213448971
+  },
+  "e7828b3fa0de6604a197c61d4ff3d1b1eee90b6ce25f308afde5fc1d28a9096d": {
+    "username": "mackson weiber (mackson.weiber13@gmail.com)",
+    "email": "mackson.weiber13@gmail.com",
+    "firebaseUid": "DXtVP7jRmdVqeyXnYPXrtL3uXJQ2",
+    "expiresAt": 1790369705165
+  },
+  "9dd247b1a7d5d262c5cfe05ad3734b4ff4e008b4f35305f3c6d2e533cd56b887": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790370437561
+  },
+  "2083f9f2aa2c2bd91558f48d7a58c2e55eceb6fa79788fb57aedb5f276f185ec": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390229371
+  },
+  "68f86fcc65958b6965445d30a005445546211ae1b5de8fe8b8161f245b6b5874": {
+    "username": "Novo Administrador Teste (novoteste@gmail.com)",
+    "email": "novoteste@gmail.com",
+    "firebaseUid": "fake-uid-12345",
+    "expiresAt": 1790390230983
+  },
+  "e9e4edef1fc07c33ad02e8ef298bcb78381e08acf72e7cc8909633e3d4e533fa": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390299421
+  },
+  "a041fdfbcf2a497012a1cf8ea6551412b8435c6899671c41906690ee247644ee": {
+    "username": "marceloparticular5",
+    "email": "marceloparticular5@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790390343795
+  },
+  "3da21641f080e0a0f0011cdb5c7f72412323933d68e38761c6d7c8923c7ca6d6": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390347223
+  },
+  "45eb7a114f7aae71e857dc07cb8875ec3202b4e1c8abc5116ecc51d7efea9a87": {
+    "username": "Gerente Comercial",
+    "email": "novo.gerente@empresa.com",
+    "role": "admin",
+    "expiresAt": 1790390347801
+  },
+  "f06567c9add5f7ba63e3bcdfae3073fb11e7749c11336cbd6292d3edbda19fd5": {
+    "username": "mackson weiber (mackson.weiber13@gmail.com)",
+    "email": "mackson.weiber13@gmail.com",
+    "firebaseUid": "DXtVP7jRmdVqeyXnYPXrtL3uXJQ2",
+    "expiresAt": 1790390363466
+  },
+  "42718895463ff0a4793731ee08f6da24d73ebbddbe5b252ef935af3d385ec20f": {
+    "username": "mackson weiber (mackson.weiber13@gmail.com)",
+    "email": "mackson.weiber13@gmail.com",
+    "firebaseUid": "DXtVP7jRmdVqeyXnYPXrtL3uXJQ2",
+    "expiresAt": 1790390364005
+  },
+  "f0ddd4b1386ea01f138b639ce13a0ede6349920addcd2a1149c17712fd10f6c2": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390440793
+  },
+  "a6cd7beff52f215b24b75492b23c620bd358fd3384b0f15f98700d5d6e8e6f38": {
+    "username": "Administrador Novato",
+    "email": "teste.novato@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790390441466
+  },
+  "b0cd8ae3d21fdc9496196ab23b759773daa5d2610421b527f5a8864c8a959752": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390451915
+  },
+  "3957446c8e44a1191be40258aaf4bb3a13f224e8083650e4e4be32b879718c57": {
+    "username": "Administrador Novato",
+    "email": "teste.novato@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790390451939
+  },
+  "a92bc9a31b082c6aca866da426e96aa95814a41d284bb29e403c99d5d91a1ab4": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790390467698
+  },
+  "e607b2bb1b0332468fce42afff4df1e6aec186117f7f0cbcc6f34aebe1eb3b45": {
+    "username": "Administrador Novato",
+    "email": "teste.novato@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790390468287
   }
 }

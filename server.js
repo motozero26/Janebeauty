@@ -16,6 +16,8 @@ const HOST = '0.0.0.0';
 const DATA_DIR = path.join(__dirname, 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const DEFAULT_PRODUCTS_FILE = path.join(DATA_DIR, 'default_products.json');
+const CATALOGS_FILE = path.join(DATA_DIR, 'catalogs.json');
+const DEFAULT_CATALOGS_FILE = path.join(DATA_DIR, 'default_catalogs.json');
 const ADMIN_FILE = path.join(DATA_DIR, 'admin.json');
 const ADMINS_FILE = path.join(DATA_DIR, 'admins.json');
 const BOOTSTRAPPED_OWNER_EMAIL = 'mackson.weiber13@gmail.com';
@@ -239,6 +241,33 @@ function saveProducts(products) {
   fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf-8');
 }
 
+function getCatalogs() {
+  try {
+    if (fs.existsSync(CATALOGS_FILE)) {
+      const content = fs.readFileSync(CATALOGS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+    if (fs.existsSync(DEFAULT_CATALOGS_FILE)) {
+      const content = fs.readFileSync(DEFAULT_CATALOGS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        fs.writeFileSync(CATALOGS_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Erro ao carregar catálogos:', err);
+  }
+  return [];
+}
+
+function saveCatalogs(catalogs) {
+  fs.writeFileSync(CATALOGS_FILE, JSON.stringify(catalogs, null, 2), 'utf-8');
+}
+
 // Middleware for parsing JSON with ample capacity for base64 images
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -313,7 +342,7 @@ function requireAuth(req, res, next) {
 // ----------------- API ROUTES ----------------- //
 
 // Login endpoint (Autenticação por E-mail Autorizado)
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   const { email, username } = req.body || {};
   const rawEmail = (email || username || '').trim().toLowerCase();
 
@@ -325,7 +354,7 @@ app.post('/api/admin/login', (req, res) => {
   }
 
   const isOwner = rawEmail === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase();
-  const existingAdmin = findAdminByEmail(rawEmail);
+  const existingAdmin = await findAdminByEmail(rawEmail);
 
   if (!isOwner && (!existingAdmin || existingAdmin.status !== 'active')) {
     return res.status(403).json({
@@ -906,6 +935,172 @@ app.post('/api/products/reset', requireAuth, (req, res) => {
   return res.status(500).json({
     success: false,
     error: 'Não foi possível restaurar os produtos padrão.'
+  });
+});
+
+// =================== CATÁLOGOS & REVISTAS PARCEIRAS =================== //
+
+// Public: Get all catalogs (local authoritative store with Firestore seed fallback)
+app.get('/api/catalogs', async (req, res) => {
+  const localCatalogs = getCatalogs();
+  if (Array.isArray(localCatalogs) && localCatalogs.length > 0) {
+    return res.json(localCatalogs);
+  }
+
+  // Fallback to Firestore if local file is empty
+  try {
+    const colRef = collection(db, 'catalogs');
+    const snap = await getDocs(colRef);
+    if (!snap.empty) {
+      const cats = [];
+      snap.forEach(docSnap => {
+        cats.push(docSnap.data());
+      });
+      cats.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      saveCatalogs(cats);
+      return res.json(cats);
+    }
+  } catch (err) {
+    console.warn('Fallback Firestore catálogos:', err ? err.message : '');
+  }
+
+  res.json(localCatalogs);
+});
+
+// Protected: Create a new catalog
+app.post('/api/catalogs', requireAuth, (req, res) => {
+  const { id: customId, title, category, description, link, coverImage, btnText, badge, createdAt } = req.body || {};
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({
+      success: false,
+      error: 'O título ou marca do catálogo é obrigatório.'
+    });
+  }
+
+  if (!link || !link.trim()) {
+    return res.status(400).json({
+      success: false,
+      error: 'O link do catálogo (PDF ou Google Drive) é obrigatório.'
+    });
+  }
+
+  const catalogs = getCatalogs();
+  const id = customId || ('cat_' + Date.now());
+  const cleanTitle = title.trim();
+
+  const newCatalog = {
+    id,
+    title: cleanTitle,
+    category: (category || 'Perfumaria e Cosméticos').trim(),
+    description: (description || '').trim(),
+    link: link.trim(),
+    coverImage: coverImage || '',
+    btnText: (btnText || 'Abrir catálogo →').trim(),
+    badge: (badge || 'cat-custom').trim(),
+    createdAt: createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const existingIdx = catalogs.findIndex(c => c.id === id);
+  if (existingIdx >= 0) {
+    catalogs[existingIdx] = newCatalog;
+  } else {
+    catalogs.push(newCatalog);
+  }
+  saveCatalogs(catalogs);
+
+  return res.status(201).json({
+    success: true,
+    catalog: newCatalog,
+    message: 'Catálogo cadastrado com sucesso!'
+  });
+});
+
+// Protected: Update an existing catalog
+app.put('/api/catalogs/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { title, category, description, link, coverImage, btnText, badge, updatedAt } = req.body || {};
+
+  const catalogs = getCatalogs();
+  const index = catalogs.findIndex(c => c.id === id);
+  const cleanTitle = (title ? title.trim() : (index >= 0 ? catalogs[index].title : 'Catálogo'));
+
+  const updatedCatalog = {
+    ...(index >= 0 ? catalogs[index] : {}),
+    id,
+    title: cleanTitle,
+    category: category !== undefined ? category.trim() : (index >= 0 ? catalogs[index].category : 'Perfumaria'),
+    description: description !== undefined ? description.trim() : (index >= 0 ? catalogs[index].description : ''),
+    link: link !== undefined ? link.trim() : (index >= 0 ? catalogs[index].link : '#'),
+    coverImage: coverImage !== undefined ? coverImage : (index >= 0 ? catalogs[index].coverImage : ''),
+    btnText: btnText !== undefined ? btnText.trim() : (index >= 0 ? catalogs[index].btnText : 'Abrir catálogo →'),
+    badge: badge !== undefined ? badge.trim() : (index >= 0 ? catalogs[index].badge : 'cat-custom'),
+    updatedAt: updatedAt || new Date().toISOString()
+  };
+
+  if (index >= 0) {
+    catalogs[index] = updatedCatalog;
+  } else {
+    catalogs.push(updatedCatalog);
+  }
+  saveCatalogs(catalogs);
+
+  return res.json({
+    success: true,
+    catalog: updatedCatalog,
+    message: 'Catálogo atualizado com sucesso!'
+  });
+});
+
+// Protected: Delete a catalog
+app.delete('/api/catalogs/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const catalogs = getCatalogs();
+  const filtered = catalogs.filter(c => c.id !== id);
+
+  saveCatalogs(filtered);
+  return res.json({
+    success: true,
+    message: 'Catálogo removido com sucesso!'
+  });
+});
+
+// Protected: Sync catalog array with client or Firestore
+app.post('/api/catalogs/sync', requireAuth, (req, res) => {
+  const { catalogs } = req.body || {};
+  if (Array.isArray(catalogs) && catalogs.length > 0) {
+    saveCatalogs(catalogs);
+    return res.json({
+      success: true,
+      count: catalogs.length,
+      message: 'Catálogos sincronizados com sucesso!'
+    });
+  }
+  return res.status(400).json({
+    success: false,
+    error: 'Array de catálogos inválido para sincronização.'
+  });
+});
+
+// Protected: Reset catalogs to default
+app.post('/api/catalogs/reset', requireAuth, (req, res) => {
+  try {
+    if (fs.existsSync(DEFAULT_CATALOGS_FILE)) {
+      const defaults = JSON.parse(fs.readFileSync(DEFAULT_CATALOGS_FILE, 'utf-8'));
+      saveCatalogs(defaults);
+      return res.json({
+        success: true,
+        catalogs: defaults,
+        message: 'Catálogos restaurados para os padrões de fábrica!'
+      });
+    }
+  } catch (err) {
+    console.error('Erro ao restaurar catálogos padrão:', err);
+  }
+  return res.status(500).json({
+    success: false,
+    error: 'Não foi possível restaurar os catálogos padrão.'
   });
 });
 

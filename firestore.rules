@@ -74,6 +74,20 @@ service cloud.firestore {
         (!('addedBy' in data) || (data.addedBy is string && data.addedBy.size() <= 120));
     }
 
+    function isValidCatalog(data) {
+      return data.keys().hasAll(['id', 'title', 'link']) &&
+        data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+        data.link is string && data.link.size() > 0 && data.link.size() <= 2000 &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 150)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 5000)) &&
+        (!('coverImage' in data) || (data.coverImage is string && data.coverImage.size() <= 1000000)) &&
+        (!('btnText' in data) || (data.btnText is string && data.btnText.size() <= 100)) &&
+        (!('badge' in data) || (data.badge is string && data.badge.size() <= 100)) &&
+        (!('createdAt' in data) || data.createdAt is string) &&
+        (!('updatedAt' in data) || data.updatedAt is string);
+    }
+
     // Diagnostic collection for connection verification
     match /test/{docId} {
       allow get: if true;
@@ -86,6 +100,14 @@ service cloud.firestore {
       allow create: if isAdmin() && isValidId(productId) && incoming().id == productId && isValidProduct(incoming());
       allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().id == existing().id;
       allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    // Catalogs & Digital Magazines: public read, admin write
+    match /catalogs/{catalogId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(catalogId) && incoming().id == catalogId && isValidCatalog(incoming());
+      allow update: if isAdmin() && isValidId(catalogId) && isValidCatalog(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(catalogId);
     }
 
     // Admin collection: strictly restricted to verified admins
