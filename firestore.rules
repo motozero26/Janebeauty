@@ -71,7 +71,8 @@ service cloud.firestore {
         (!('uid' in data) || (data.uid is string && data.uid.size() <= 128)) &&
         (!('createdAt' in data) || data.createdAt is string) &&
         (!('isOwner' in data) || data.isOwner is bool) &&
-        (!('addedBy' in data) || (data.addedBy is string && data.addedBy.size() <= 120));
+        (!('addedBy' in data) || (data.addedBy is string && data.addedBy.size() <= 120)) &&
+        (!('updatedAt' in data) || data.updatedAt is string);
     }
 
     function isValidCatalog(data) {
@@ -110,9 +111,9 @@ service cloud.firestore {
       allow delete: if isAdmin() && isValidId(catalogId);
     }
 
-    // Admin collection: strictly restricted to verified admins
+    // Admin collection: single document get allowed by valid ID for authentication lookup, list/writes strictly restricted to verified admins
     match /admins/{adminId} {
-      allow get: if isAdmin() && isValidAdminId(adminId);
+      allow get: if isValidAdminId(adminId);
       allow list: if isAdmin();
       allow create, update: if isAdmin() && isValidAdminId(adminId) && isValidAdminDoc(incoming());
       allow delete: if isAdmin() && isValidAdminId(adminId);

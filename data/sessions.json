@@ -114,5 +114,23 @@
     "email": "teste.novato@gmail.com",
     "role": "admin",
     "expiresAt": 1790390468287
+  },
+  "ce25c1a8ae8c33b3728af5d12d4b503447b67a3b089817fb492488cf5242f089": {
+    "username": "mackson weiber (mackson.weiber13@gmail.com)",
+    "email": "mackson.weiber13@gmail.com",
+    "firebaseUid": "DXtVP7jRmdVqeyXnYPXrtL3uXJQ2",
+    "expiresAt": 1790424233793
+  },
+  "ecc998a440e5991c041ea004381f02bd85bedf4dfe0c90763b5013214a2795d9": {
+    "username": "Mackson Weiber",
+    "email": "mackson.weiber13@gmail.com",
+    "role": "superadmin",
+    "expiresAt": 1790424884980
+  },
+  "77d9903b1d8d4c9011538aadcfc9181ff4a5b385bc09ac282c439b36c27734ff": {
+    "username": "Novato Editado com Sucesso",
+    "email": "teste_novato_1789820085096@gmail.com",
+    "role": "editor",
+    "expiresAt": 1790424885215
   }
 }

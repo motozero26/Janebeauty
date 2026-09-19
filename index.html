@@ -423,13 +423,26 @@
         const app = initializeApp(cfg);
         const db = getFirestore(app, cfg.firestoreDatabaseId);
 
-        // Validate connection
-        try {
-          await getDocFromServer(doc(db, "test", "connection"));
-        } catch (err) {
+        // Validate connection non-blocking in background
+        getDocFromServer(doc(db, "test", "connection")).catch((err) => {
           if (err instanceof Error && err.message.includes("the client is offline")) {
             console.error("Please check your Firebase configuration.");
           }
+        });
+
+        // Carregamento imediato dos produtos via Firestore
+        try {
+          const snap = await getDocs(collection(db, "products"));
+          if (!snap.empty) {
+            const prods = [];
+            snap.forEach(d => prods.push(d.data()));
+            prods.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            renderProducts(prods);
+            synced = true;
+            console.log("🔥 Vitrine carregada do Firestore:", prods.length, "produtos");
+          }
+        } catch (fsErr) {
+          console.warn("Firestore query inicial:", fsErr.message);
         }
 
         // Escuta em tempo real dos produtos via Firestore
@@ -448,6 +461,20 @@
           });
         } catch (fsErr) {
           console.warn("Firestore query fallback:", fsErr.message);
+        }
+
+        // Carregamento imediato dos catálogos via Firestore
+        try {
+          const catSnap = await getDocs(collection(db, "catalogs"));
+          if (!catSnap.empty) {
+            const cats = [];
+            catSnap.forEach(d => cats.push(d.data()));
+            cats.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            renderPublicCatalogs(cats);
+            catalogsSynced = true;
+          }
+        } catch (fsErr) {
+          console.warn("Firestore catalogs inicial:", fsErr.message);
         }
 
         // Escuta em tempo real dos catálogos via Firestore
@@ -474,7 +501,7 @@
 
     if (!synced) {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products?_t=" + Date.now(), { cache: "no-store" });
         if (res.ok) {
           const products = await res.json();
           renderProducts(products);
@@ -486,7 +513,7 @@
 
     if (!catalogsSynced) {
       try {
-        const resCats = await fetch("/api/catalogs");
+        const resCats = await fetch("/api/catalogs?_t=" + Date.now(), { cache: "no-store" });
         if (resCats.ok) {
           const catalogs = await resCats.json();
           renderPublicCatalogs(catalogs);

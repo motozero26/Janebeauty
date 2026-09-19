@@ -2072,6 +2072,54 @@
     </div>
   </div>
 
+  <!-- MODAL: EDITAR ADMINISTRADOR -->
+  <div id="editAdminModalBackdrop" class="modal-backdrop">
+    <div class="modal-window" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Editar Administrador</h2>
+        <button type="button" class="btn-close-modal" id="btnCloseEditAdminModal" aria-label="Fechar">&times;</button>
+      </div>
+
+      <form id="editAdminForm" autocomplete="off">
+        <input type="hidden" id="editAdminId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="editAdminEmail">E-mail Cadastrado</label>
+            <input type="email" id="editAdminEmail" class="form-control" disabled style="background: #f1f5f9; cursor: not-allowed;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editAdminName">Nome ou Identificação</label>
+            <input type="text" id="editAdminName" class="form-control" placeholder="ex: Amanda (Gerente de Vendas)" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editAdminRole">Nível de Permissão *</label>
+            <select id="editAdminRole" class="form-control" style="cursor: pointer;">
+              <option value="admin">Administrador (Acesso total)</option>
+              <option value="editor">Editor (Gerencia produtos e catálogos)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editAdminStatus">Status do Acesso</label>
+            <select id="editAdminStatus" class="form-control" style="cursor: pointer;">
+              <option value="active">Ativo (Acesso Liberado)</option>
+              <option value="inactive">Inativo (Acesso Bloqueado)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary-action" id="btnCancelEditAdminModal">Cancelar</button>
+          <button type="submit" id="btnSubmitEditAdmin" class="btn-primary-action">
+            <span>Salvar Alterações</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: CONFIRMAR REVOGAÇÃO DE ADMINISTRADOR -->
   <div id="deleteAdminModalBackdrop" class="modal-backdrop">
     <div class="modal-window" style="max-width: 440px;">
@@ -2179,18 +2227,19 @@
         fbDb = getFirestore(fbApp, cfg.firestoreDatabaseId);
         fbAuth = getAuth(fbApp);
 
-        try {
-          await getDocFromServer(doc(fbDb, 'test', 'connection'));
+        // Iniciar listeners em tempo real imediatamente, sem bloquear carregamento
+        startFirestoreRealtimeListener();
+        startFirestoreCatalogsRealtimeListener();
+
+        // Validar conexão com Firestore em segundo plano
+        getDocFromServer(doc(fbDb, 'test', 'connection')).then(() => {
           isFirebaseReady = true;
           console.log('🔥 Conexão com o Firebase Firestore validada.');
-        } catch (connErr) {
+        }).catch((connErr) => {
           if (connErr instanceof Error && connErr.message.includes('the client is offline')) {
             console.error('Verifique sua configuração de rede com o Firebase.');
           }
-        }
-
-        // Listener em tempo real do Firestore: mantém o catálogo e a grade atualizados a cada alteração
-        startFirestoreRealtimeListener();
+        });
 
         onAuthStateChanged(fbAuth, async (user) => {
           const btnConnect = document.getElementById('btnConnectGoogleHeader');
@@ -2274,7 +2323,11 @@
             }
           }
         }, (err) => {
-          console.warn('Listener Firestore tempo real:', err.message);
+          console.warn('Listener Firestore tempo real:', err ? err.message : '');
+          unsubscribeFirestore = null;
+          setTimeout(() => {
+            if (!unsubscribeFirestore) startFirestoreRealtimeListener();
+          }, 3000);
         });
       } catch (err) {
         console.warn('Falha ao iniciar listener Firestore:', err.message);
@@ -2565,6 +2618,23 @@
       if (addAdminModalBackdrop) {
         addAdminModalBackdrop.addEventListener('click', (e) => {
           if (e.target === addAdminModalBackdrop) closeAddAdminModal();
+        });
+      }
+
+      // Modal de Edição de Administrador
+      const btnCloseEditAdminModal = document.getElementById('btnCloseEditAdminModal');
+      if (btnCloseEditAdminModal) btnCloseEditAdminModal.addEventListener('click', closeEditAdminModal);
+
+      const btnCancelEditAdminModal = document.getElementById('btnCancelEditAdminModal');
+      if (btnCancelEditAdminModal) btnCancelEditAdminModal.addEventListener('click', closeEditAdminModal);
+
+      const editAdminForm = document.getElementById('editAdminForm');
+      if (editAdminForm) editAdminForm.addEventListener('submit', handleEditAdmin);
+
+      const editAdminModalBackdrop = document.getElementById('editAdminModalBackdrop');
+      if (editAdminModalBackdrop) {
+        editAdminModalBackdrop.addEventListener('click', (e) => {
+          if (e.target === editAdminModalBackdrop) closeEditAdminModal();
         });
       }
 
@@ -2935,18 +3005,49 @@
       }
     }
 
-    // 4. Carregar Produtos
+    // 4. Carregar Produtos (Busca direta no Firestore na nuvem e fallback sem cache)
     async function loadProducts() {
+      let loadedFromFirestore = false;
+
+      // 1. Busca direta no Firestore (garante que todos os admins vejam os produtos recém-inseridos instantaneamente)
+      if (fbDb) {
+        try {
+          const snap = await getDocs(collection(fbDb, 'products'));
+          if (!snap.empty) {
+            const fsProducts = [];
+            snap.forEach(d => fsProducts.push(d.data()));
+            fsProducts.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            allProducts = fsProducts;
+            renderProducts();
+            updateStats();
+            loadedFromFirestore = true;
+            console.log('⚡ Produtos carregados instantaneamente do Firestore:', fsProducts.length);
+          }
+        } catch (fsErr) {
+          console.warn('Busca direta Firestore:', fsErr.message);
+        }
+      }
+
+      // 2. Busca do servidor com quebra de cache HTTP
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products?_t=' + Date.now(), {
+          cache: 'no-store'
+        });
         if (res.ok) {
-          allProducts = await res.json();
-          renderProducts();
-          updateStats();
+          const srvProducts = await res.json();
+          if (Array.isArray(srvProducts) && srvProducts.length > 0) {
+            if (!loadedFromFirestore || srvProducts.length >= allProducts.length) {
+              allProducts = srvProducts;
+              renderProducts();
+              updateStats();
+            }
+          }
         }
       } catch (err) {
         console.error('Erro ao buscar produtos:', err);
-        showToast('Erro ao carregar produtos do servidor.', 'error');
+        if (!loadedFromFirestore) {
+          showToast('Erro ao carregar produtos do servidor.', 'error');
+        }
       }
     }
 
@@ -3628,7 +3729,11 @@
             }
           }
         }, (err) => {
-          console.warn('Realtime catalogs snapshot error:', err);
+          console.warn('Realtime catalogs snapshot error:', err ? err.message : '');
+          unsubscribeCatalogsFirestore = null;
+          setTimeout(() => {
+            if (!unsubscribeCatalogsFirestore) startFirestoreCatalogsRealtimeListener();
+          }, 3000);
         });
       } catch (e) {
         console.warn('Erro ao inicializar realtime listener de catálogos:', e);
@@ -3636,18 +3741,47 @@
     }
 
     async function loadCatalogs() {
+      let loadedFromFirestore = false;
+
+      // 1. Busca direta no Firestore
+      if (fbDb) {
+        try {
+          const snap = await getDocs(collection(fbDb, 'catalogs'));
+          if (!snap.empty) {
+            const fsCats = [];
+            snap.forEach(d => fsCats.push(d.data()));
+            fsCats.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            allCatalogs = fsCats;
+            renderCatalogs();
+            updateCatalogStats();
+            loadedFromFirestore = true;
+            console.log('⚡ Catálogos carregados instantaneamente do Firestore:', fsCats.length);
+          }
+        } catch (fsErr) {
+          console.warn('Busca direta Firestore catálogos:', fsErr.message);
+        }
+      }
+
+      // 2. Busca do servidor com quebra de cache HTTP
       try {
-        const res = await fetch('/api/catalogs');
+        const res = await fetch('/api/catalogs?_t=' + Date.now(), {
+          cache: 'no-store'
+        });
         if (res.ok) {
           const cats = await res.json();
-          allCatalogs = cats || [];
-          renderCatalogs();
-          updateCatalogStats();
-          startFirestoreCatalogsRealtimeListener();
+          if (Array.isArray(cats) && cats.length > 0) {
+            if (!loadedFromFirestore || cats.length >= allCatalogs.length) {
+              allCatalogs = cats;
+              renderCatalogs();
+              updateCatalogStats();
+            }
+          }
         }
       } catch (err) {
         console.warn('Erro ao buscar catálogos:', err);
       }
+
+      startFirestoreCatalogsRealtimeListener();
     }
 
     // 16.3 Atualizar Estatísticas de Catálogos
@@ -4043,12 +4177,22 @@
 
         let actionsHtml = '';
         if (isOwner) {
-          actionsHtml = `<span style="font-size: 12px; color: #b45309; font-weight: 600;">👑 Conta Principal</span>`;
+          actionsHtml = `
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; color: #b45309; font-weight: 600;">👑 Principal</span>
+              <button type="button" class="btn-secondary-action" style="padding: 5px 10px; font-size: 12px; background: #f8fafc; color: var(--navy); border-color: #cbd5e1;" onclick="window.openEditAdminModal('${escapeHtml(admin.id)}')">
+                ✏️ Editar
+              </button>
+            </div>
+          `;
         } else {
           const toggleText = admin.status === 'active' ? 'Desativar' : 'Ativar';
           const toggleClass = admin.status === 'active' ? 'background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;' : 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;';
           actionsHtml = `
             <div style="display: inline-flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-secondary-action" style="padding: 5px 10px; font-size: 12px; background: #f8fafc; color: var(--navy); border-color: #cbd5e1;" onclick="window.openEditAdminModal('${escapeHtml(admin.id)}')">
+                ✏️ Editar
+              </button>
               <button type="button" class="btn-secondary-action" style="padding: 5px 10px; font-size: 12px; ${toggleClass}" onclick="window.toggleAdminStatus('${escapeHtml(admin.id)}')">
                 ${toggleText}
               </button>
@@ -4128,20 +4272,31 @@
 
         const data = await res.json();
         if (res.ok && data.success) {
-          // Também sincronizar direto com Firestore se autenticado no Firebase
-          if (fbDb && fbAuth?.currentUser) {
-            try {
-              await setDoc(doc(fbDb, 'admins', email.toLowerCase()), {
-                email: email.toLowerCase(),
-                name: name || email.split('@')[0],
-                role,
-                status: 'active',
-                isOwner: false,
-                createdAt: new Date().toISOString(),
-                addedBy: currentAdminUser
-              }, { merge: true });
-            } catch (fsErr) {
-              console.warn('Firestore direto:', fsErr.message);
+          // Também sincronizar direto com Firestore
+          if (fbDb) {
+            if (!fbAuth?.currentUser) {
+              try {
+                const provider = new GoogleAuthProvider();
+                await signInWithPopup(fbAuth, provider);
+              } catch (popupErr) {
+                console.warn('Tentativa de conexão Google:', popupErr.message);
+              }
+            }
+            if (fbAuth?.currentUser) {
+              try {
+                await setDoc(doc(fbDb, 'admins', email.toLowerCase()), {
+                  email: email.toLowerCase(),
+                  name: name || email.split('@')[0],
+                  role,
+                  status: 'active',
+                  isOwner: false,
+                  createdAt: new Date().toISOString(),
+                  addedBy: currentAdminUser
+                }, { merge: true });
+                console.log('🔥 Novo admin sincronizado com Firestore:', email);
+              } catch (fsErr) {
+                console.warn('Firestore direto:', fsErr.message);
+              }
             }
           }
 
@@ -4157,6 +4312,96 @@
         if (btnSubmit) {
           btnSubmit.disabled = false;
           btnSubmit.textContent = '+ Autorizar e Liberar Acesso';
+        }
+      }
+    }
+
+    // 19.1 Modais de Edição de Administrador
+    function openEditAdminModal(id) {
+      const admin = allAdmins.find(a => a.id === id || a.email === id);
+      if (!admin) return;
+
+      const backdrop = document.getElementById('editAdminModalBackdrop');
+      const idInput = document.getElementById('editAdminId');
+      const emailInput = document.getElementById('editAdminEmail');
+      const nameInput = document.getElementById('editAdminName');
+      const roleInput = document.getElementById('editAdminRole');
+      const statusInput = document.getElementById('editAdminStatus');
+
+      if (idInput) idInput.value = admin.id;
+      if (emailInput) emailInput.value = admin.email;
+      if (nameInput) nameInput.value = admin.name || '';
+      if (roleInput) {
+        roleInput.value = admin.role || 'admin';
+        roleInput.disabled = !!admin.isOwner;
+      }
+      if (statusInput) {
+        statusInput.value = admin.status || 'active';
+        statusInput.disabled = !!admin.isOwner;
+      }
+
+      if (backdrop) backdrop.classList.add('active');
+      if (nameInput) setTimeout(() => nameInput.focus(), 50);
+    }
+
+    function closeEditAdminModal() {
+      const backdrop = document.getElementById('editAdminModalBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    async function handleEditAdmin(e) {
+      e.preventDefault();
+      const id = document.getElementById('editAdminId')?.value;
+      const email = document.getElementById('editAdminEmail')?.value;
+      const name = (document.getElementById('editAdminName')?.value || '').trim();
+      const role = document.getElementById('editAdminRole')?.value || 'admin';
+      const status = document.getElementById('editAdminStatus')?.value || 'active';
+      const btnSubmit = document.getElementById('btnSubmitEditAdmin');
+
+      if (!id) return;
+
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Salvando...';
+      }
+
+      try {
+        const res = await fetch(`/api/admin/admins/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify({ name, role, status })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (fbDb && fbAuth?.currentUser && email) {
+            try {
+              await setDoc(doc(fbDb, 'admins', email.toLowerCase()), {
+                name,
+                role,
+                status,
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+            } catch (fsErr) {
+              console.warn('Firestore edit direto:', fsErr.message);
+            }
+          }
+
+          showToast(data.message || 'Administrador atualizado com sucesso!', 'success');
+          closeEditAdminModal();
+          await loadAdmins();
+        } else {
+          showToast(data.error || 'Erro ao atualizar administrador.', 'error');
+        }
+      } catch (err) {
+        showToast('Falha na comunicação com o servidor.', 'error');
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Salvar Alterações';
         }
       }
     }
@@ -4259,6 +4504,8 @@
     window.switchTab = switchTab;
     window.openAddAdminModal = openAddAdminModal;
     window.closeAddAdminModal = closeAddAdminModal;
+    window.openEditAdminModal = openEditAdminModal;
+    window.closeEditAdminModal = closeEditAdminModal;
     window.toggleAdminStatus = toggleAdminStatus;
     window.confirmDeleteAdmin = confirmDeleteAdmin;
     window.closeDeleteAdminModal = closeDeleteAdminModal;

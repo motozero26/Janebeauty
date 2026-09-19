@@ -433,31 +433,6 @@ app.post('/api/admin/firebase-login', async (req, res) => {
     if (uid) admins[adminIdx].firebaseUid = uid;
     if (displayName && !admins[adminIdx].name) admins[adminIdx].name = displayName;
     saveAuthorizedAdmins(admins);
-
-    // Sync UID to Firestore admins collection for Firestore Security Rules
-    try {
-      if (uid) {
-        await setDoc(doc(db, 'admins', uid), {
-          email: normalizedEmail,
-          name: admins[adminIdx].name || displayName || '',
-          role: admins[adminIdx].role || 'admin',
-          status: 'active',
-          isOwner: admins[adminIdx].isOwner || false,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      }
-      await setDoc(doc(db, 'admins', normalizedEmail), {
-        email: normalizedEmail,
-        name: admins[adminIdx].name || displayName || '',
-        role: admins[adminIdx].role || 'admin',
-        status: 'active',
-        uid: uid || '',
-        isOwner: admins[adminIdx].isOwner || false,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-    } catch (fsErr) {
-      console.warn('Sync admin login to Firestore:', fsErr.message);
-    }
   }
 
   const token = crypto.randomBytes(32).toString('hex');
@@ -657,27 +632,65 @@ app.post('/api/admin/admins', requireAuth, async (req, res) => {
   admins.push(newAdmin);
   saveAuthorizedAdmins(admins);
 
-  // Sync to Firestore collection 'admins'
+  // Sincronizar com default_admins.json para persistência entre reinicializações
   try {
-    await setDoc(doc(db, 'admins', normalizedEmail), {
-      email: normalizedEmail,
-      name: newAdmin.name,
-      role: newAdmin.role,
-      status: 'active',
-      isOwner: newAdmin.isOwner,
-      createdAt: newAdmin.createdAt,
-      addedBy: newAdmin.addedBy,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-    console.log(`🔥 Administrador ${normalizedEmail} sincronizado no Firestore`);
-  } catch (fsErr) {
-    console.warn('Erro ao sincronizar admin no Firestore:', fsErr.message);
-  }
+    const defaultAdminsPath = path.join(__dirname, 'data', 'default_admins.json');
+    fs.writeFileSync(defaultAdminsPath, JSON.stringify(admins, null, 2), 'utf-8');
+  } catch (e) {}
 
   return res.json({
     success: true,
     message: `E-mail ${normalizedEmail} autorizado com sucesso como ${assignedRole === 'admin' ? 'Administrador' : 'Editor'}!`,
     admin: newAdmin
+  });
+});
+
+// Edit admin details (name, role, status)
+app.put('/api/admin/admins/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { name, role, status } = req.body || {};
+  const admins = getAuthorizedAdmins();
+  const idx = admins.findIndex(a => a.id === id || (a.email && a.email.toLowerCase() === id.toLowerCase()));
+
+  if (idx === -1) {
+    return res.status(404).json({
+      success: false,
+      error: 'Administrador não encontrado.'
+    });
+  }
+
+  const target = admins[idx];
+  const isOwner = target.isOwner || (target.email && target.email.toLowerCase() === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase());
+
+  if (name !== undefined) {
+    target.name = name.trim() || target.email.split('@')[0];
+  }
+
+  if (role !== undefined && !isOwner) {
+    const validRoles = ['admin', 'superadmin', 'editor'];
+    if (validRoles.includes(role)) {
+      target.role = role;
+    }
+  }
+
+  if (status !== undefined && !isOwner) {
+    if (['active', 'inactive'].includes(status)) {
+      target.status = status;
+    }
+  }
+
+  target.updatedAt = new Date().toISOString();
+  saveAuthorizedAdmins(admins);
+
+  try {
+    const defaultAdminsPath = path.join(__dirname, 'data', 'default_admins.json');
+    fs.writeFileSync(defaultAdminsPath, JSON.stringify(admins, null, 2), 'utf-8');
+  } catch (e) {}
+
+  return res.json({
+    success: true,
+    message: `Dados do administrador ${target.email} atualizados com sucesso!`,
+    admin: target
   });
 });
 
@@ -706,15 +719,10 @@ app.patch('/api/admin/admins/:id/toggle', requireAuth, async (req, res) => {
   target.updatedAt = new Date().toISOString();
   saveAuthorizedAdmins(admins);
 
-  // Sync status to Firestore
   try {
-    await setDoc(doc(db, 'admins', target.email), {
-      status: target.status,
-      updatedAt: target.updatedAt
-    }, { merge: true });
-  } catch (fsErr) {
-    console.warn('Erro ao atualizar status do admin no Firestore:', fsErr.message);
-  }
+    const defaultAdminsPath = path.join(__dirname, 'data', 'default_admins.json');
+    fs.writeFileSync(defaultAdminsPath, JSON.stringify(admins, null, 2), 'utf-8');
+  } catch (e) {}
 
   return res.json({
     success: true,
@@ -747,16 +755,10 @@ app.delete('/api/admin/admins/:id', requireAuth, async (req, res) => {
   admins.splice(idx, 1);
   saveAuthorizedAdmins(admins);
 
-  // Delete from Firestore
   try {
-    await deleteDoc(doc(db, 'admins', target.email));
-    if (target.firebaseUid) {
-      await deleteDoc(doc(db, 'admins', target.firebaseUid));
-    }
-    console.log(`🔥 Administrador ${target.email} removido do Firestore`);
-  } catch (fsErr) {
-    console.warn('Erro ao deletar admin do Firestore:', fsErr.message);
-  }
+    const defaultAdminsPath = path.join(__dirname, 'data', 'default_admins.json');
+    fs.writeFileSync(defaultAdminsPath, JSON.stringify(admins, null, 2), 'utf-8');
+  } catch (e) {}
 
   return res.json({
     success: true,
@@ -764,14 +766,13 @@ app.delete('/api/admin/admins/:id', requireAuth, async (req, res) => {
   });
 });
 
-// Public: Get all products (local authoritative store with Firestore seed fallback)
+// Public: Get all products (Firestore authoritative cloud store with local cache fallback)
 app.get('/api/products', async (req, res) => {
-  const localProducts = getProducts();
-  if (Array.isArray(localProducts) && localProducts.length > 0) {
-    return res.json(localProducts);
-  }
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
 
-  // Fallback to Firestore if local cache is empty
+  // Query Firestore first for real-time cloud catalog
   try {
     const colRef = collection(db, 'products');
     const snap = await getDocs(colRef);
@@ -781,13 +782,15 @@ app.get('/api/products', async (req, res) => {
         prods.push(docSnap.data());
       });
       prods.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      saveProducts(prods);
+      saveProducts(prods); // Keeps local file updated as backup
       return res.json(prods);
     }
   } catch (err) {
     console.warn('Firestore fallback to local cache:', err ? err.message : '');
   }
 
+  // Fallback to local products if Firestore is offline or empty
+  const localProducts = getProducts();
   res.json(localProducts);
 });
 
@@ -940,14 +943,13 @@ app.post('/api/products/reset', requireAuth, (req, res) => {
 
 // =================== CATÁLOGOS & REVISTAS PARCEIRAS =================== //
 
-// Public: Get all catalogs (local authoritative store with Firestore seed fallback)
+// Public: Get all catalogs (Firestore authoritative cloud store with local cache fallback)
 app.get('/api/catalogs', async (req, res) => {
-  const localCatalogs = getCatalogs();
-  if (Array.isArray(localCatalogs) && localCatalogs.length > 0) {
-    return res.json(localCatalogs);
-  }
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
 
-  // Fallback to Firestore if local file is empty
+  // Query Firestore first for real-time cloud catalogs
   try {
     const colRef = collection(db, 'catalogs');
     const snap = await getDocs(colRef);
@@ -957,13 +959,15 @@ app.get('/api/catalogs', async (req, res) => {
         cats.push(docSnap.data());
       });
       cats.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      saveCatalogs(cats);
+      saveCatalogs(cats); // Keeps local file updated as backup
       return res.json(cats);
     }
   } catch (err) {
     console.warn('Fallback Firestore catálogos:', err ? err.message : '');
   }
 
+  // Fallback to local catalogs if Firestore is offline or empty
+  const localCatalogs = getCatalogs();
   res.json(localCatalogs);
 });
 
