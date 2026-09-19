@@ -2180,6 +2180,8 @@
     // Estado Global da Aplicação
     let authToken = localStorage.getItem('jany_admin_token') || '';
     let currentAdminUser = localStorage.getItem('jany_admin_user') || 'admin';
+    let currentAdminEmail = localStorage.getItem('jany_admin_email') || '';
+    let currentAdminRole = localStorage.getItem('jany_admin_role') || 'admin';
     let allProducts = [];
     let activeDeleteId = null;
     let allCatalogs = [];
@@ -2188,6 +2190,27 @@
     let activeDeleteAdminId = null;
     let activeDeleteAdminEmail = '';
     let currentTab = 'products';
+
+    // Helper central de autorização e cabeçalhos protegidos
+    function getAdminAuthHeaders(extraHeaders = {}) {
+      const headers = { ...extraHeaders };
+      if (authToken) {
+        headers['Authorization'] = 'Bearer ' + authToken;
+      }
+      if (currentAdminEmail) {
+        headers['x-admin-email'] = currentAdminEmail;
+      }
+      return headers;
+    }
+
+    function checkNewSessionToken(res) {
+      if (!res || !res.headers) return;
+      const newToken = res.headers.get('x-new-session-token') || res.headers.get('X-New-Session-Token');
+      if (newToken && newToken !== authToken) {
+        authToken = newToken;
+        localStorage.setItem('jany_admin_token', authToken);
+      }
+    }
 
     // Instâncias do Firebase
     let fbApp = null;
@@ -2265,8 +2288,12 @@
               if (res.ok && data.success) {
                 authToken = data.token;
                 currentAdminUser = data.user.username;
+                currentAdminEmail = data.user.email || user.email.toLowerCase();
+                currentAdminRole = data.user.role || 'admin';
                 localStorage.setItem('jany_admin_token', authToken);
                 localStorage.setItem('jany_admin_user', currentAdminUser);
+                localStorage.setItem('jany_admin_email', currentAdminEmail);
+                localStorage.setItem('jany_admin_role', currentAdminRole);
                 showDashboardView();
                 loadProducts();
                 loadCatalogs();
@@ -2314,10 +2341,7 @@
             if (authToken) {
               fetch('/api/products/sync', {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + authToken
-                },
+                headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ products: fsProducts })
               }).catch(() => {});
             }
@@ -2336,25 +2360,62 @@
 
     // 1. Verificação de Autenticação
     async function checkAuthentication() {
-      if (!authToken) {
+      if (!authToken && !currentAdminEmail) {
         showLoginView();
         return;
       }
 
       try {
         const res = await fetch('/api/admin/me', {
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+
+        checkNewSessionToken(res);
 
         if (res.ok) {
           const data = await res.json();
           currentAdminUser = data.user.username;
+          if (data.user.email) {
+            currentAdminEmail = data.user.email;
+            localStorage.setItem('jany_admin_email', currentAdminEmail);
+          }
+          if (data.user.role) {
+            currentAdminRole = data.user.role;
+            localStorage.setItem('jany_admin_role', currentAdminRole);
+          }
           localStorage.setItem('jany_admin_user', currentAdminUser);
           showDashboardView();
           loadProducts();
           loadCatalogs();
           loadAdmins();
         } else {
+          // Se tiver e-mail salvo, tentar restabelecer sessão silenciosamente
+          if (currentAdminEmail) {
+            try {
+              const refreshRes = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentAdminEmail })
+              });
+              if (refreshRes.ok) {
+                const refData = await refreshRes.json();
+                authToken = refData.token;
+                currentAdminUser = refData.user.username;
+                currentAdminEmail = refData.user.email || currentAdminEmail;
+                currentAdminRole = refData.user.role || 'admin';
+                localStorage.setItem('jany_admin_token', authToken);
+                localStorage.setItem('jany_admin_user', currentAdminUser);
+                localStorage.setItem('jany_admin_email', currentAdminEmail);
+                localStorage.setItem('jany_admin_role', currentAdminRole);
+                showDashboardView();
+                loadProducts();
+                loadCatalogs();
+                loadAdmins();
+                return;
+              }
+            } catch (rErr) {}
+          }
+
           // Se o Firebase Auth tiver sessão ativa, aguardar a restauração automática do token
           if (fbAuth && fbAuth.currentUser) {
             console.log('Aguardando restauração de sessão via Firebase Auth...');
@@ -2390,15 +2451,19 @@
       if (authToken) {
         fetch('/api/admin/logout', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         }).catch(() => {});
       }
       if (fbAuth) {
         fbSignOut(fbAuth).catch(() => {});
       }
       authToken = '';
+      currentAdminEmail = '';
+      currentAdminRole = 'admin';
       localStorage.removeItem('jany_admin_token');
       localStorage.removeItem('jany_admin_user');
+      localStorage.removeItem('jany_admin_email');
+      localStorage.removeItem('jany_admin_role');
       showLoginView();
       if (notify) {
         showToast('Sessão encerrada com sucesso.', 'info');
@@ -2813,8 +2878,12 @@
         if (res.ok && data.success) {
           authToken = data.token;
           currentAdminUser = data.user.username;
+          currentAdminEmail = data.user.email || user.email.toLowerCase();
+          currentAdminRole = data.user.role || 'admin';
           localStorage.setItem('jany_admin_token', authToken);
           localStorage.setItem('jany_admin_user', currentAdminUser);
+          localStorage.setItem('jany_admin_email', currentAdminEmail);
+          localStorage.setItem('jany_admin_role', currentAdminRole);
 
           showDashboardView();
           showToast(`Bem-vindo, ${user.displayName || user.email}! Acesso autorizado.`, 'success');
@@ -2881,8 +2950,12 @@
         if (res.ok && data.success) {
           authToken = data.token;
           currentAdminUser = data.user.username;
+          currentAdminEmail = data.user.email || email.toLowerCase();
+          currentAdminRole = data.user.role || 'admin';
           localStorage.setItem('jany_admin_token', authToken);
           localStorage.setItem('jany_admin_user', currentAdminUser);
+          localStorage.setItem('jany_admin_email', currentAdminEmail);
+          localStorage.setItem('jany_admin_role', currentAdminRole);
 
           showDashboardView();
           showToast(`Bem-vindo, ${data.user.username}! Acesso concedido com sucesso.`, 'success');
@@ -3296,10 +3369,7 @@
 
       // 2. Salvar na API do Servidor (Express)
       try {
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + authToken
-        };
+        const headers = getAdminAuthHeaders({ 'Content-Type': 'application/json' });
         if (fbAuth?.currentUser?.email) {
           headers['X-Admin-Email'] = fbAuth.currentUser.email;
         }
@@ -3313,13 +3383,10 @@
           body: JSON.stringify(payload)
         });
 
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
           serverOk = true;
-          if (res.headers.get('X-New-Session-Token')) {
-            authToken = res.headers.get('X-New-Session-Token');
-            localStorage.setItem('jany_admin_token', authToken);
-          }
         } else {
           console.warn('API retorno:', data.error);
         }
@@ -3418,7 +3485,7 @@
 
       // 2. Remover da API do Servidor
       try {
-        const headers = { 'Authorization': 'Bearer ' + authToken };
+        const headers = getAdminAuthHeaders();
         if (fbAuth?.currentUser?.email) {
           headers['X-Admin-Email'] = fbAuth.currentUser.email;
         }
@@ -3428,13 +3495,10 @@
           headers
         });
 
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
           serverOk = true;
-          if (res.headers.get('X-New-Session-Token')) {
-            authToken = res.headers.get('X-New-Session-Token');
-            localStorage.setItem('jany_admin_token', authToken);
-          }
         }
       } catch (srvErr) {
         console.warn('Erro ao deletar na API:', srvErr);
@@ -3468,8 +3532,9 @@
       try {
         const res = await fetch('/api/products/reset', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
 
         const data = await res.json();
         if (res.ok && data.success) {
@@ -3717,13 +3782,10 @@
             }
             console.log('⚡ Catálogos parceiros sincronizados em tempo real com o Firestore:', fsCats.length);
 
-            if (authToken) {
+            if (authToken || currentAdminEmail) {
               fetch('/api/catalogs/sync', {
                 method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + authToken
-                },
+                headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ catalogs: fsCats })
               }).catch(() => {});
             }
@@ -3994,12 +4056,10 @@
         const method = isEdit ? 'PUT' : 'POST';
         const res = await fetch(url, {
           method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken
-          },
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(catalogData)
         });
+        checkNewSessionToken(res);
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           console.warn('Aviso ao salvar catálogo na API:', errData);
@@ -4049,10 +4109,11 @@
 
       // Remover via API
       try {
-        await fetch(`/api/catalogs/${idToDelete}`, {
+        const res = await fetch(`/api/catalogs/${idToDelete}`, {
           method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
       } catch (err) {
         console.warn('Erro ao remover catálogo via API:', err);
       }
@@ -4070,15 +4131,16 @@
 
     // 16.7 Restaurar Padrões de Catálogos
     async function handleResetDefaultCatalogs() {
-      if (!authToken) return;
+      if (!authToken && !currentAdminEmail) return;
       const btn = document.getElementById('btnResetDefaultCatalogs');
       if (btn) btn.textContent = 'Restaurando...';
 
       try {
         const res = await fetch('/api/catalogs/reset', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
         if (res.ok) {
           const resetCats = await res.json();
           allCatalogs = resetCats;
@@ -4108,11 +4170,12 @@
 
     // 17. Carregar Administradores
     async function loadAdmins() {
-      if (!authToken) return;
+      if (!authToken && !currentAdminEmail) return;
       try {
         const res = await fetch('/api/admin/admins', {
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
         if (res.ok) {
           const data = await res.json();
           allAdmins = data.admins || [];
@@ -4245,7 +4308,7 @@
 
     async function handleAddAdmin(e) {
       e.preventDefault();
-      const email = (document.getElementById('newAdminEmail')?.value || '').trim();
+      const email = (document.getElementById('newAdminEmail')?.value || '').trim().toLowerCase();
       const name = (document.getElementById('newAdminName')?.value || '').trim();
       const role = document.getElementById('newAdminRole')?.value || 'admin';
       const btnSubmit = document.getElementById('btnSubmitAddAdmin');
@@ -4263,40 +4326,28 @@
       try {
         const res = await fetch('/api/admin/admins', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken
-          },
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ email, name, role })
         });
 
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
-          // Também sincronizar direto com Firestore
-          if (fbDb) {
-            if (!fbAuth?.currentUser) {
-              try {
-                const provider = new GoogleAuthProvider();
-                await signInWithPopup(fbAuth, provider);
-              } catch (popupErr) {
-                console.warn('Tentativa de conexão Google:', popupErr.message);
-              }
-            }
-            if (fbAuth?.currentUser) {
-              try {
-                await setDoc(doc(fbDb, 'admins', email.toLowerCase()), {
-                  email: email.toLowerCase(),
-                  name: name || email.split('@')[0],
-                  role,
-                  status: 'active',
-                  isOwner: false,
-                  createdAt: new Date().toISOString(),
-                  addedBy: currentAdminUser
-                }, { merge: true });
-                console.log('🔥 Novo admin sincronizado com Firestore:', email);
-              } catch (fsErr) {
-                console.warn('Firestore direto:', fsErr.message);
-              }
+          // Sincronizar em segundo plano com Firestore apenas se já houver sessão Firebase ativa
+          if (fbDb && fbAuth?.currentUser) {
+            try {
+              await setDoc(doc(fbDb, 'admins', email), {
+                email,
+                name: name || email.split('@')[0],
+                role,
+                status: 'active',
+                isOwner: false,
+                createdAt: new Date().toISOString(),
+                addedBy: currentAdminUser || currentAdminEmail
+              }, { merge: true });
+              console.log('🔥 Novo admin sincronizado com Firestore:', email);
+            } catch (fsErr) {
+              console.warn('Firestore direto (opcional):', fsErr.message);
             }
           }
 
@@ -4368,13 +4419,11 @@
       try {
         const res = await fetch(`/api/admin/admins/${id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + authToken
-          },
+          headers: getAdminAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ name, role, status })
         });
 
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
           if (fbDb && fbAuth?.currentUser && email) {
@@ -4410,8 +4459,9 @@
       try {
         const res = await fetch(`/api/admin/admins/${id}/toggle`, {
           method: 'PATCH',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
           if (fbDb && fbAuth?.currentUser && data.admin?.email) {
@@ -4461,8 +4511,9 @@
       try {
         const res = await fetch(`/api/admin/admins/${activeDeleteAdminId}`, {
           method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + authToken }
+          headers: getAdminAuthHeaders()
         });
+        checkNewSessionToken(res);
         const data = await res.json();
         if (res.ok && data.success) {
           // Também remover do Firestore se autenticado no Firebase

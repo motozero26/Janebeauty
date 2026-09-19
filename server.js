@@ -30,6 +30,7 @@ if (!fs.existsSync(DATA_DIR)) {
 // In-memory and file-backed active sessions: token -> { username, email, role, expiresAt }
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const sessions = new Map();
+const AUTH_SECRET = process.env.SESSION_SECRET || 'jany-beauty-admin-auth-hmac-secret-v1-2026';
 
 function loadSessions() {
   try {
@@ -62,6 +63,56 @@ function saveSessions() {
 
 // Carregar sessões persistidas no início
 loadSessions();
+
+// Stateless, multi-container cryptographically signed token helper
+function createSignedToken(email, username, role, customExpiryMs) {
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const expiresAt = Date.now() + (customExpiryMs || (14 * 24 * 60 * 60 * 1000)); // 14 dias
+  const payloadStr = JSON.stringify({
+    email: normalizedEmail,
+    username: username || normalizedEmail.split('@')[0],
+    role: role || 'admin',
+    expiresAt
+  });
+  const payloadB64 = Buffer.from(payloadStr, 'utf-8').toString('base64url');
+  const signature = crypto.createHmac('sha256', AUTH_SECRET).update(payloadB64).digest('base64url');
+  const token = `s_${payloadB64}.${signature}`;
+
+  // Manter também em cache de memória
+  sessions.set(token, {
+    username: username || normalizedEmail.split('@')[0],
+    email: normalizedEmail,
+    role: role || 'admin',
+    expiresAt
+  });
+  saveSessions();
+  return token;
+}
+
+function verifySignedToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  if (!token.startsWith('s_')) return null;
+
+  const raw = token.substring(2);
+  const dotIndex = raw.indexOf('.');
+  if (dotIndex === -1) return null;
+
+  const payloadB64 = raw.substring(0, dotIndex);
+  const signature = raw.substring(dotIndex + 1);
+  if (!payloadB64 || !signature) return null;
+
+  const expectedSig = crypto.createHmac('sha256', AUTH_SECRET).update(payloadB64).digest('base64url');
+  if (signature !== expectedSig) return null;
+
+  try {
+    const data = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
+    if (!data || !data.email || !data.expiresAt) return null;
+    if (data.expiresAt < Date.now()) return null;
+    return data;
+  } catch (err) {
+    return null;
+  }
+}
 
 function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password).trim()).digest('hex');
@@ -283,7 +334,7 @@ app.use((req, res, next) => {
 });
 
 // Authentication middleware for admin routes
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || '';
   let token = '';
   if (authHeader.startsWith('Bearer ')) {
@@ -294,39 +345,51 @@ function requireAuth(req, res, next) {
     token = String(req.query.token).trim();
   }
 
-  // 1. Check active session token
-  if (token && sessions.has(token)) {
-    const session = sessions.get(token);
-    if (session.expiresAt >= Date.now()) {
-      req.adminUser = session.username;
-      req.sessionToken = token;
-      return next();
-    } else {
-      sessions.delete(token);
-      saveSessions();
+  // 1. Check stateless cryptographically signed token (works across server restarts and container instances)
+  if (token) {
+    const verified = verifySignedToken(token);
+    if (verified && verified.email) {
+      const activeAdmin = await findAdminByEmail(verified.email);
+      if (activeAdmin && activeAdmin.status === 'active') {
+        req.adminUser = verified.username || activeAdmin.name || verified.email;
+        req.adminEmail = verified.email.toLowerCase();
+        req.adminRole = activeAdmin.role || verified.role || (activeAdmin.isOwner ? 'superadmin' : 'admin');
+        req.sessionToken = token;
+        return next();
+      }
+    }
+
+    // 2. Check active session token from in-memory / sessions.json (backward compatibility)
+    if (sessions.has(token)) {
+      const session = sessions.get(token);
+      if (session && session.expiresAt >= Date.now()) {
+        const sessionEmail = (session.email || '').toLowerCase();
+        const activeAdmin = sessionEmail ? await findAdminByEmail(sessionEmail) : null;
+        if (!activeAdmin || activeAdmin.status === 'active') {
+          req.adminUser = session.username;
+          req.adminEmail = sessionEmail;
+          req.adminRole = session.role || (activeAdmin?.role || 'admin');
+          req.sessionToken = token;
+          return next();
+        }
+      } else {
+        sessions.delete(token);
+        saveSessions();
+      }
     }
   }
 
-  // 2. Fallback: Authenticate via verified admin email header from client
+  // 3. Fallback: Authenticate via verified admin email header from client
   const adminEmail = (req.headers['x-admin-email'] || '').toString().trim().toLowerCase();
   if (adminEmail) {
-    const isOwner = adminEmail === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase();
-    const admins = getAuthorizedAdmins();
-    const matched = isOwner || admins.find(a => a.email && a.email.toLowerCase() === adminEmail && a.status !== 'inactive');
-    if (matched) {
-      const newToken = token || ('adm_' + crypto.randomBytes(24).toString('hex'));
-      const adminName = (typeof matched === 'object' ? matched.name : '') || adminEmail.split('@')[0];
-      const adminRole = (typeof matched === 'object' ? matched.role : null) || (isOwner ? 'superadmin' : 'admin');
-      const newSession = {
-        username: adminName,
-        email: adminEmail,
-        role: adminRole,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
-      };
-      sessions.set(newToken, newSession);
-      saveSessions();
-      req.adminUser = newSession.username;
+    const activeAdmin = await findAdminByEmail(adminEmail);
+    if (activeAdmin && activeAdmin.status === 'active') {
+      const adminName = activeAdmin.name || adminEmail.split('@')[0];
+      const adminRole = activeAdmin.role || (activeAdmin.isOwner ? 'superadmin' : 'admin');
+      const newToken = createSignedToken(adminEmail, adminName, adminRole);
+      req.adminUser = adminName;
+      req.adminEmail = adminEmail;
+      req.adminRole = adminRole;
       req.sessionToken = newToken;
       res.setHeader('X-New-Session-Token', newToken);
       return next();
@@ -367,7 +430,7 @@ app.post('/api/admin/login', async (req, res) => {
   const admins = getAuthorizedAdmins();
   const adminIdx = admins.findIndex(a => a.email && a.email.toLowerCase() === rawEmail);
   let adminName = rawEmail.split('@')[0];
-  let adminRole = isOwner ? 'superadmin' : 'admin';
+  let adminRole = isOwner ? 'superadmin' : (existingAdmin?.role || 'admin');
 
   if (adminIdx >= 0) {
     admins[adminIdx].lastLoginAt = new Date().toISOString();
@@ -376,16 +439,8 @@ app.post('/api/admin/login', async (req, res) => {
     saveAuthorizedAdmins(admins);
   }
 
-  // Create session token valid for 7 days
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  sessions.set(token, {
-    username: adminName,
-    email: rawEmail,
-    role: adminRole,
-    expiresAt
-  });
-  saveSessions();
+  // Create signed session token valid for 14 days
+  const token = createSignedToken(rawEmail, adminName, adminRole);
 
   return res.json({
     success: true,
@@ -435,16 +490,9 @@ app.post('/api/admin/firebase-login', async (req, res) => {
     saveAuthorizedAdmins(admins);
   }
 
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const userRole = existingAdmin?.role || (isOwner ? 'superadmin' : 'admin');
   const username = displayName ? `${displayName} (${email})` : email;
-  sessions.set(token, {
-    username,
-    email: normalizedEmail,
-    firebaseUid: uid,
-    expiresAt
-  });
-  saveSessions();
+  const token = createSignedToken(normalizedEmail, username, userRole);
 
   return res.json({
     success: true,
@@ -452,7 +500,7 @@ app.post('/api/admin/firebase-login', async (req, res) => {
     user: {
       username,
       email: normalizedEmail,
-      role: existingAdmin?.role || (isOwner ? 'superadmin' : 'admin')
+      role: userRole
     },
     message: 'Autenticado com sucesso via Firebase Google Auth!'
   });
@@ -481,7 +529,9 @@ app.get('/api/admin/me', requireAuth, (req, res) => {
   return res.json({
     success: true,
     user: {
-      username: req.adminUser
+      username: req.adminUser,
+      email: req.adminEmail,
+      role: req.adminRole
     }
   });
 });
@@ -605,6 +655,13 @@ app.post('/api/admin/admins', requireAuth, async (req, res) => {
     });
   }
 
+  if (req.adminRole === 'editor') {
+    return res.status(403).json({
+      success: false,
+      error: 'Acesso restrito. Editores podem gerenciar apenas produtos e catálogos. Somente Administradores podem adicionar novos administradores.'
+    });
+  }
+
   const validRoles = ['admin', 'editor'];
   const assignedRole = validRoles.includes(role) ? role : 'admin';
   const admins = getAuthorizedAdmins();
@@ -626,7 +683,7 @@ app.post('/api/admin/admins', requireAuth, async (req, res) => {
     status: 'active',
     isOwner: normalizedEmail === BOOTSTRAPPED_OWNER_EMAIL.toLowerCase(),
     createdAt: new Date().toISOString(),
-    addedBy: req.adminUser || 'Admin'
+    addedBy: req.adminUser || req.adminEmail || 'Administrador'
   };
 
   admins.push(newAdmin);

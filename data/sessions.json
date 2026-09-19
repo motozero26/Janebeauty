@@ -132,5 +132,31 @@
     "email": "teste_novato_1789820085096@gmail.com",
     "role": "editor",
     "expiresAt": 1790424885215
+  },
+  "9a4a7c43d36eb6428039ea428d9ea1ac7300231eb239822d0a2db8177632b656": {
+    "username": "marceloparticular5",
+    "email": "marceloparticular5@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790427237654
+  },
+  "07fe6adc242d227bf65a044218917627b7c9681c4babeaa96c6060c9c8aed958": {
+    "username": "marceloparticular5",
+    "email": "marceloparticular5@gmail.com",
+    "role": "admin",
+    "expiresAt": 1790427601636
+  },
+  "adm_e08de3923a9e43f911e997c6df2c2b43ad6a5c8b07ae6647": {
+    "username": "marceloparticular5",
+    "email": "marceloparticular5@gmail.com",
+    "role": "admin",
+    "createdAt": 1789822806522,
+    "expiresAt": 1790427606522
+  },
+  "adm_b4ae3039ba608bab2576b1f8d4162ec83fa9a0276febf379": {
+    "username": "marceloparticular5",
+    "email": "marceloparticular5@gmail.com",
+    "role": "admin",
+    "createdAt": 1789822806631,
+    "expiresAt": 1790427606631
   }
 }
